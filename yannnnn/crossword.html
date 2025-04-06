@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <title>Palavras Cruzadas - Química</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      gap: 3px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .cell {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .cell input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      text-align: center;
+      font-size: 20px;
+      text-transform: uppercase;
+    }
+
+    .cell.correct input {
+      background-color: #b6fcb6;
+    }
+
+    .cell.wrong input {
+      background-color: #fcb6b6;
+    }
+
+    .dicas {
+      margin-top: 20px;
+      text-align: left;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h2>🧠 Palavras Cruzadas de Química</h2>
+    <div class="grid" id="crossword-grid"></div>
+    <div class="dicas" id="dicas"></div>
+    <button onclick="verificar()">✅ Verificar</button>
+    <p id="player-name"></p>
+    <button onclick="goToHome()">🏠 Voltar para o Início</button>
+  </div>
+
+  <script>
+    const name = localStorage.getItem("playerName");
+    if (name) {
+      document.getElementById("player-name").innerText = `👤 Jogador: ${name}`;
+    }
+
+    function goToHome() {
+      window.location.href = "index.html";
+    }
+
+    const palavrasBase = [
+      { palavra: "OXIDACAO", dica: "Processo de perda de elétrons." },
+      { palavra: "REDUCAO", dica: "Processo de ganho de elétrons." },
+      { palavra: "ACIDO", dica: "Libera H⁺ em solução aquosa." },
+      { palavra: "BASE", dica: "Libera OH⁻ em solução aquosa." },
+      { palavra: "SAL", dica: "Formado por reação entre ácido e base." },
+      { palavra: "FERRO", dica: "Metal que enferruja facilmente." }
+    ];
+
+    const gridTamanho = 10;
+    const inputs = {};
+
+    function gerarPalavrasEmPosicoes(gridSize, palavrasBase) {
+      const posicoes = [];
+      const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
+
+      for (const { palavra, dica } of palavrasBase) {
+        let tentativas = 0;
+        let colocado = false;
+
+        while (!colocado && tentativas < 100) {
+          tentativas++;
+          const horizontal = Math.random() < 0.5;
+          const maxLinha = horizontal ? gridSize : gridSize - palavra.length;
+          const maxColuna = horizontal ? gridSize - palavra.length : gridSize;
+
+          const linha = Math.floor(Math.random() * maxLinha);
+          const coluna = Math.floor(Math.random() * maxColuna);
+
+          let podeColocar = true;
+
+          for (let i = 0; i < palavra.length; i++) {
+            const r = horizontal ? linha : linha + i;
+            const c = horizontal ? coluna + i : coluna;
+            const letraExistente = grid[r][c];
+
+            if (letraExistente && letraExistente !== palavra[i]) {
+              podeColocar = false;
+              break;
+            }
+          }
+
+          if (podeColocar) {
+            for (let i = 0; i < palavra.length; i++) {
+              const r = horizontal ? linha : linha + i;
+              const c = horizontal ? coluna + i : coluna;
+              grid[r][c] = palavra[i];
+            }
+
+            posicoes.push({ palavra, dica, linha, coluna, horizontal });
+            colocado = true;
+          }
+        }
+      }
+
+      return posicoes;
+    }
+
+    const palavras = gerarPalavrasEmPosicoes(gridTamanho, palavrasBase);
+
+    const container = document.getElementById("crossword-grid");
+    const grid = Array.from({ length: gridTamanho }, () => Array(gridTamanho).fill(null));
+
+    palavras.forEach(({ palavra, linha, coluna, horizontal }) => {
+      for (let i = 0; i < palavra.length; i++) {
+        const r = horizontal ? linha : linha + i;
+        const c = horizontal ? coluna + i : coluna;
+
+        if (!grid[r][c]) {
+          grid[r][c] = document.createElement("div");
+          grid[r][c].className = "cell";
+
+          const input = document.createElement("input");
+          input.maxLength = 1;
+          input.dataset.row = r;
+          input.dataset.col = c;
+
+          input.addEventListener("input", function () {
+            this.value = this.value.toUpperCase();
+            this.parentElement.classList.remove("correct", "wrong");
+
+            const next = inputs[`${parseInt(r)}-${parseInt(c) + 1}`] || inputs[`${parseInt(r) + 1}-${c}`];
+            if (this.value && next) next.focus();
+          });
+
+          grid[r][c].appendChild(input);
+          inputs[`${r}-${c}`] = input;
+        }
+      }
+    });
+
+    grid.forEach(row => {
+      row.forEach(cell => {
+        container.appendChild(cell ? cell : document.createElement("div"));
+      });
+    });
+
+    const dicasDiv = document.getElementById("dicas");
+    dicasDiv.innerHTML = "<h3>Dicas:</h3><ul>" + palavras.map(p => `<li>${p.dica}</li>`).join('') + "</ul>";
+
+    function verificar() {
+  // Verifica se todos os inputs foram preenchidos
+  const todosPreenchidos = Object.values(inputs).every(input => input.value.trim() !== "");
+  
+  if (!todosPreenchidos) {
+    alert("🚫 Preencha todas as letras antes de verificar.");
+    return;
+  }
+
+  // Continua a verificação normal
+  palavras.forEach(({ palavra, linha, coluna, horizontal }) => {
+    for (let i = 0; i < palavra.length; i++) {
+      const r = horizontal ? linha : linha + i;
+      const c = horizontal ? coluna + i : coluna;
+      const key = `${r}-${c}`;
+      const input = inputs[key];
+      if (!input) continue;
+      const letraCorreta = palavra[i];
+      const container = input.parentElement;
+      if (input.value.toUpperCase() === letraCorreta) {
+        container.classList.add("correct");
+        container.classList.remove("wrong");
+      } else {
+        container.classList.add("wrong");
+        container.classList.remove("correct");
+      }
+    }
+  });
+}
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Química</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="character">
+            <div class="speech-bubble">
+                <p id="question">Carregando...</p>
+            </div>
+            <img src="boneco-removebg-preview.png" alt="Boneco Falante" class="character-img">
+        </div>
+        
+        <div class="options">
+            <button class="option" onclick="checkAnswer(0)">Opção 1</button>
+            <button class="option" onclick="checkAnswer(1)">Opção 2</button>
+            <button class="option" onclick="checkAnswer(2)">Opção 3</button>
+            <button class="option" onclick="checkAnswer(3)">Opção 4</button>
+        </div>
+
+        <!-- Botão de Voltar -->
+        <button onclick="goToHome()" style="margin-top: 20px;">🏠 Voltar para o Início</button>
+
+        <div id="result-container" class="hidden">
+            <h2>Fim do Quiz! 🎉</h2>
+            <p id="score-text"></p>
+            <p id="player-name" style="margin-top: 10px; font-weight: bold;"></p>
+            <button onclick="startGame()">🔄 Reiniciar</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
