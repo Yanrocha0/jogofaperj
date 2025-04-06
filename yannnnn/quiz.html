@@ -8,31 +8,51 @@
 </head>
 <body>
     <div class="quiz-container">
+
         <div class="character">
             <div class="speech-bubble">
                 <p id="question">Carregando...</p>
             </div>
             <img src="boneco-removebg-preview.png" alt="Boneco Falante" class="character-img">
         </div>
-        
+
         <div class="options">
+            <p id="progress-text" style="font-weight: bold; margin-top: 20px;"></p>
             <button class="option" onclick="checkAnswer(0)">Opção 1</button>
             <button class="option" onclick="checkAnswer(1)">Opção 2</button>
             <button class="option" onclick="checkAnswer(2)">Opção 3</button>
             <button class="option" onclick="checkAnswer(3)">Opção 4</button>
+
+            <!-- Feedback visual -->
+            <div id="feedback" class="hidden">
+                <span id="feedback-icon"></span>
+            </div>
         </div>
 
         <!-- Botão de Voltar -->
-        <button onclick="goToHome()" style="margin-top: 20px;">🏠 Voltar para o Início</button>
+        <button class="home-btn" onclick="goToHome()" title="Voltar para o Início">🏠</button>
 
-        <div id="result-container" class="hidden">
-            <h2>Fim do Quiz! 🎉</h2>
-            <p id="score-text"></p>
-            <p id="player-name" style="margin-top: 10px; font-weight: bold;"></p>
-            <button onclick="startGame()">🔄 Reiniciar</button>
+        <!-- Seção de Ranking -->
+        <div id="ranking-section" style="margin-top: 20px; display: none;">
+            <button onclick="toggleRanking()">👑 Ver Ranking</button>
+            <div id="ranking" style="display: none; margin-top: 10px;"></div>
+            <button id="reset-btn" onclick="resetRanking()" style="display: none;">🗑️ Resetar Ranking</button>
         </div>
+
+        <!-- Resultado Final -->
+<div id="result-container" class="hidden">
+    <h2>Fim do Quiz! 🎉</h2>
+    <p id="score-text"></p>
+    <p id="player-name" style="margin-top: 10px; font-weight: bold;"></p>
+
+    <!-- Ranking ao final -->
+    <div id="ranking-final" style="margin-top: 20px;"></div>
+
+    <button onclick="startGame()">🔄 Reiniciar</button>
+</div>
+
     </div>
 
     <script src="script.js"></script>
 </body>
-</html>
+</html> 
