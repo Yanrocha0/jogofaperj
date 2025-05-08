@@ -25,10 +25,12 @@
       localStorage.setItem("playerName", name);
       if (game === "quiz") {
         window.location.href = "quiz.html";
-      } else {
+      } else if (game === "crossword") {
         window.location.href = "crossword.html";
+      } else if (game === "memory") {
+        window.location.href = "memoria.html"; // Certifique-se que este arquivo existe
       }
     }
   </script>
 </body>
-</html> 
+</html>
