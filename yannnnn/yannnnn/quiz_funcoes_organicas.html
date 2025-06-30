@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Funções Orgânicas</title>
+    <style>
+        /* Estilos com tema azul/preto e fundo de moléculas */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        
+        :root {
+            --primary: #2980b9;
+            --secondary: #3498db;
+            --accent: #1abc9c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --correct: #2ecc71;
+            --incorrect: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            overflow: hidden;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--dark), var(--primary));
+            color: var(--light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .quiz-container {
+            position: relative;
+            z-index: 2;
+            width: 90%;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .character {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .character-img {
+            width: 150px;
+            height: auto;
+            border-radius: 50%;
+            border: 5px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(26, 188, 156, 0.5);
+        }
+        
+        .speech-bubble {
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 15px 15px 0;
+            border-style: solid;
+            border-color: rgba(255, 255, 255, 0.9) transparent;
+        }
+        
+        #question {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .option {
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        
+        .option:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .option:active {
+            transform: translateY(0);
+        }
+
+        .option.correct {
+            background: rgba(46, 204, 113, 0.3);
+            border: 2px solid var(--correct);
+        }
+
+        .option.wrong {
+            background: rgba(231, 76, 60, 0.3);
+            border: 2px solid var(--incorrect);
+        }
+        
+        #progress-text {
+            color: var(--light);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        #feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        #feedback.correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--correct);
+        }
+        
+        #feedback.incorrect {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--incorrect);
+        }
+        
+        #explanation-box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border-left: 5px solid var(--accent);
+        }
+        
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        #explanation-text {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        #next-btn, button[onclick="startGame()"] {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+        }
+        
+        #next-btn:hover, button[onclick="startGame()"]:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(41, 128, 185, 0.4);
+        }
+        
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+        
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        #result-container {
+            margin-top: 30px;
+        }
+        
+        #result-container h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+        
+        #score-text {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Elementos flutuantes */
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-50px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+        
+        .molecule {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: moleculeFloat 20s infinite linear;
+        }
+        
+        @keyframes moleculeFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(50px, -30px) rotate(90deg); }
+            50% { transform: translate(0, -60px) rotate(180deg); }
+            75% { transform: translate(-50px, -30px) rotate(270deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+        
+        .atom {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+        
+        .atom:nth-child(1) { transform: rotate(0deg) translate(20px); }
+        .atom:nth-child(2) { transform: rotate(72deg) translate(20px); }
+        .atom:nth-child(3) { transform: rotate(144deg) translate(20px); }
+        .atom:nth-child(4) { transform: rotate(216deg) translate(20px); }
+        .atom:nth-child(5) { transform: rotate(288deg) translate(20px); }
+        
+        @media (max-width: 768px) {
+            .quiz-container {
+                width: 95%;
+                padding: 30px 20px;
+            }
+            
+            .character-img {
+                width: 120px;
+            }
+            
+            .speech-bubble {
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Partículas de fundo -->
+    <div id="particles-js"></div>
+    
+    <!-- Elementos flutuantes -->
+    <div class="floating-elements">
+        <div class="floating-element" style="top: 10%; left: 5%;">⚗️</div>
+        <div class="floating-element" style="top: 20%; left: 80%;">🧪</div>
+        <div class="floating-element" style="top: 70%; left: 10%;">🔬</div>
+        <div class="floating-element" style="top: 80%; left: 85%;">🧫</div>
+        
+        <div class="molecule" style="top: 30%; left: 20%;">
+            <div class="atom"></div>
+            <div class="atom"></div>
+            <div class="atom"></div>
+            <div class="atom"></div>
+            <div class="atom"></div>
+        </div>
+        
+        <div class="molecule" style="top: 60%; left: 70%;">
+            <div class="atom"></div>
+            <div class="atom"></div>
+            <div class="atom"></div>
+            <div class="atom"></div>
+            <div class="atom"></div>
+        </div>
+    </div>
+    
+    <!-- Conteúdo principal -->
+    <div class="quiz-container">
+        <div class="character">
+            <div class="speech-bubble" id="speech-bubble">
+                <p id="question">Carregando...</p>
+            </div>
+            <img src="scientist.png" alt="Boneco Falante" class="character-img">
+        </div>
+
+        <div id="explanation-box" class="hidden">
+            <p id="question-in-explanation" class="question-text"></p>
+            <p id="explanation-text"></p>
+            <button id="next-btn">Próxima ➡️</button>
+        </div>
+
+        <div class="options">
+            <p id="progress-text" style="font-weight: bold; margin-top: 20px;"></p>
+            <button class="option" onclick="checkAnswer(0)">Opção 1</button>
+            <button class="option" onclick="checkAnswer(1)">Opção 2</button>
+            <button class="option" onclick="checkAnswer(2)">Opção 3</button>
+            <button class="option" onclick="checkAnswer(3)">Opção 4</button>
+
+            <div id="feedback" class="hidden">
+                <span id="feedback-icon"></span>
+            </div>
+        </div>
+
+        <button class="home-btn" onclick="goToHome()" title="Voltar para o Início">🏠</button>
+
+        <div id="result-container" class="hidden">
+            <h2>Fim do Quiz! 🎉</h2>
+            <p id="score-text"></p>
+            <p id="player-name" style="margin-top: 10px; font-weight: bold;"></p>
+            <button onclick="startGame()">🔄 Reiniciar</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Configuração das partículas como moléculas
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 30,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#1abc9c"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 6
+                    }
+                },
+                "opacity": {
+                    "value": 0.5,
+                    "random": true,
+                    "anim": {
+                        "enable": true,
+                        "speed": 1,
+                        "opacity_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 8,
+                    "random": true,
+                    "anim": {
+                        "enable": true,
+                        "speed": 2,
+                        "size_min": 3,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 200,
+                    "color": "#3498db",
+                    "opacity": 0.4,
+                    "width": 2
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1.5,
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "bounce",
+                    "bounce": true,
+                    "attract": {
+                        "enable": true,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 200,
+                        "line_linked": {
+                            "opacity": 1
+                        }
+                    },
+                    "bubble": {
+                        "distance": 400,
+                        "size": 40,
+                        "duration": 2,
+                        "opacity": 8,
+                        "speed": 3
+                    },
+                    "repulse": {
+                        "distance": 200,
+                        "duration": 0.4
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    },
+                    "remove": {
+                        "particles_nb": 2
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+
+        // Banco de dados de perguntas atualizado com explicações
+        const questions = [
+            { 
+                question: "A Allopumiliotoxina, um alcaloide da pele de anfíbios, possui quais funções orgânicas oxigenadas?", 
+                options: ["Amina e Fenol", "Álcool e Cetona", "Éter e Éster", "Apenas Álcool"], 
+                correct: 1,
+                explanation: "A Allopumiliotoxina possui grupos hidroxila (álcool) e carbonila (cetona) em sua estrutura."
+            },
+            { 
+                question: "O cheiro de peixe podre é causado pela trimetilamina, de fórmula (CH₃)₃N. Qual a sua função orgânica?", 
+                options: ["Amina", "Amida", "Nitrila", "Nitrocomposto"], 
+                correct: 0,
+                explanation: "A trimetilamina é uma amina terciária, com três grupos metila ligados ao nitrogênio."
+            },
+            { 
+                question: "Qual a função orgânica encontrada no formol (metanal), usado para conservação de peças anatômicas?", 
+                options: ["Álcool", "Cetona", "Aldeído", "Ácido Carboxílico"], 
+                correct: 2,
+                explanation: "O formol (metanal ou formaldeído) é o aldeído mais simples, com fórmula HCHO."
+            },
+            { 
+                question: "A propanona, conhecida comercialmente como acetona, pertence a qual função orgânica?", 
+                options: ["Álcool", "Cetona", "Aldeído", "Éter"], 
+                correct: 1,
+                explanation: "A acetona é uma cetona com fórmula (CH₃)₂CO, amplamente usada como solvente."
+            },
+            { 
+                question: "O etanol, presente em bebidas alcoólicas, é um representante da função:", 
+                options: ["Fenol", "Ácido carboxílico", "Álcool", "Éter"], 
+                correct: 2,
+                explanation: "O etanol (CH₃CH₂OH) é um álcool primário, com o grupo hidroxila ligado a carbono saturado."
+            },
+            { 
+                question: "O ácido acetilsalicílico (AAS) possui quais grupos funcionais?", 
+                options: ["Ácido carboxílico e éster", "Álcool e cetona", "Aldeído e éter", "Amina e fenol"], 
+                correct: 0,
+                explanation: "O AAS tem um grupo carboxila (ácido) e um grupo éster (acetil) em sua estrutura."
+            },
+            { 
+                question: "Qual função orgânica está presente na vanilina (aroma de baunilha)?", 
+                options: ["Ácido carboxílico", "Aldeído", "Cetona", "Éter"], 
+                correct: 1,
+                explanation: "A vanilina possui um grupo aldeído (-CHO) além de grupos hidroxila (fenol) e metoxi (éter)."
+            },
+            { 
+                question: "A capsaicina, composto responsável pela ardência da pimenta, contém qual grupo funcional?", 
+                options: ["Amina", "Amida", "Éster", "Fenol"], 
+                correct: 1,
+                explanation: "A capsaicina possui um grupo amida (-CONH-) em sua estrutura molecular."
+            },
+            { 
+                question: "O mentol, responsável pelo sabor refrescante da menta, pertence a qual função?", 
+                options: ["Álcool", "Cetona", "Aldeído", "Ácido carboxílico"], 
+                correct: 0,
+                explanation: "O mentol é um álcool secundário cíclico, com fórmula C₁₀H₂₀O."
+            },
+            { 
+                question: "Qual é a função orgânica do formaldeído (HCHO)?", 
+                options: ["Álcool", "Aldeído", "Cetona", "Ácido carboxílico"], 
+                correct: 1,
+                explanation: "O formaldeído é o aldeído mais simples, amplamente usado em desinfetantes e conservantes."
+            }
+        ];
+
+        let shuffledQuestions;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let playerName = localStorage.getItem("playerName") || "Você";
+
+        const questionElement = document.getElementById("question");
+        const speechBubble = document.getElementById("speech-bubble");
+        const explanationBox = document.getElementById("explanation-box");
+        const explanationText = document.getElementById("explanation-text");
+        const nextBtn = document.getElementById("next-btn");
+        const questionInExplanation = document.getElementById("question-in-explanation");
+        const playerNameElement = document.getElementById("player-name");
+
+        // Exibe o nome do jogador
+        playerNameElement.textContent = playerName;
+
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function startGame() {
+            shuffledQuestions = shuffleArray([...questions]).slice(0, 6);
+            currentQuestionIndex = 0;
+            score = 0;
+            document.querySelector(".options").style.display = "block";
+            document.getElementById("result-container").classList.add("hidden");
+            document.getElementById("explanation-box").classList.add("hidden");
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            speechBubble.classList.remove("hidden");
+            explanationBox.classList.add("hidden");
+            const q = shuffledQuestions[currentQuestionIndex];
+            typeWriterEffect(q.question, questionElement);
+
+            document.getElementById("progress-text").innerText = `Pergunta ${currentQuestionIndex + 1} de ${shuffledQuestions.length}`;
+            const buttons = document.querySelectorAll(".option");
+            buttons.forEach((btn, index) => {
+                btn.innerText = q.options[index];
+                btn.className = "option";
+                btn.disabled = false;
+                btn.onclick = () => checkAnswer(index);
+            });
+        }
+
+        function typeWriterEffect(text, element, speed = 30) {
+            let i = 0;
+            element.textContent = '';
+            const intervalId = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(intervalId);
+                }
+            }, speed);
+        }
+
+        function checkAnswer(selectedIndex) {
+            const q = shuffledQuestions[currentQuestionIndex];
+            const buttons = document.querySelectorAll(".option");
+            buttons.forEach(btn => btn.disabled = true);
+
+            const isCorrect = selectedIndex === q.correct;
+            buttons[selectedIndex].classList.add(isCorrect ? "correct" : "wrong");
+            buttons[q.correct].classList.add("correct");
+
+            if (isCorrect) {
+                score++;
+                setTimeout(nextQuestion, 1000);
+            } else {
+                showExplanation(currentQuestionIndex);
+            }
+        }
+
+        function showExplanation(index) {
+            const q = shuffledQuestions[index];
+            explanationText.textContent = q.explanation;
+            questionInExplanation.textContent = q.question;
+            explanationBox.classList.remove("hidden");
+            speechBubble.classList.add("hidden");
+        }
+
+        nextBtn.addEventListener("click", () => nextQuestion());
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById("score-text").innerText = `Você acertou ${score} de ${shuffledQuestions.length}!`;
+            document.getElementById("result-container").classList.remove("hidden");
+            document.querySelector(".options").style.display = "none";
+            speechBubble.classList.add("hidden");
+            explanationBox.classList.add("hidden");
+        }
+
+        function goToHome() {
+            window.location.href = "index.html";
+        }
+
+        // Inicia o jogo quando a página carrega
+        startGame();
+    </script>
+</body>
+</html>
