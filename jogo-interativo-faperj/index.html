@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jovens Talentos - Química Interativa</title>
+  <style>
+    /* Estilos adicionais para a nova tela */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    
+    :root {
+      --primary: #2980b9;
+      --secondary: #3498db;
+      --accent: #1abc9c;
+      --dark: #2c3e50;
+      --light: #ecf0f1;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    body {
+      overflow-x: hidden;
+      height: 100vh;
+      background: linear-gradient(135deg, var(--dark), var(--primary));
+      color: var(--light);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    
+    #particles-js {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    
+    .quiz-container {
+      position: relative;
+      z-index: 2;
+      width: 90%;
+      max-width: 800px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+      animation: fadeIn 1.5s ease-out;
+      transform-style: preserve-3d;
+      transform: perspective(1000px);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(50px) perspective(1000px) rotateX(20deg); }
+      to { opacity: 1; transform: translateY(0) perspective(1000px) rotateX(0); }
+    }
+    
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 20px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 50px;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 10px 30px rgba(26, 188, 156, 0.5);
+      animation: pulse 2s infinite alternate;
+    }
+    
+    @keyframes pulse {
+      from { transform: scale(1); box-shadow: 0 10px 30px rgba(26, 188, 156, 0.5); }
+      to { transform: scale(1.1); box-shadow: 0 15px 40px rgba(26, 188, 156, 0.7); }
+    }
+    
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, var(--secondary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      opacity: 0.9;
+    }
+    
+    .program-name {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 30px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .program-name::after {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 3px;
+      background: linear-gradient(to right, var(--secondary), var(--accent));
+      bottom: -10px;
+      left: 25%;
+      border-radius: 3px;
+    }
+    
+    #username {
+      width: 80%;
+      padding: 15px;
+      margin: 20px 0;
+      border: none;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+      transition: all 0.3s;
+      backdrop-filter: blur(5px);
+    }
+    
+    #username::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    #username:focus {
+      background: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+    }
+    
+    .buttons-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    
+    .game-btn {
+      position: relative;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.3s;
+      box-shadow: 0 10px 20px rgba(41, 128, 185, 0.3);
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      z-index: 1;
+    }
+    
+    .game-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .game-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(41, 128, 185, 0.4);
+    }
+    
+    .game-btn:hover::before {
+      opacity: 1;
+    }
+    
+    .game-btn:active {
+      transform: translateY(0);
+    }
+    
+    .emoji {
+      font-size: 1.5rem;
+    }
+    
+    .floating-elements {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .floating-element {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.3;
+      animation: float 15s infinite linear;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-50px) rotate(180deg); }
+      100% { transform: translateY(0) rotate(360deg); }
+    }
+    
+    .molecule {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: moleculeFloat 20s infinite linear;
+    }
+    
+    @keyframes moleculeFloat {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(50px, -30px) rotate(90deg); }
+      50% { transform: translate(0, -60px) rotate(180deg); }
+      75% { transform: translate(-50px, -30px) rotate(270deg); }
+      100% { transform: translate(0, 0) rotate(360deg); }
+    }
+    
+    .atom {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    
+    .atom:nth-child(1) { transform: rotate(0deg) translate(20px); }
+    .atom:nth-child(2) { transform: rotate(72deg) translate(20px); }
+    .atom:nth-child(3) { transform: rotate(144deg) translate(20px); }
+    .atom:nth-child(4) { transform: rotate(216deg) translate(20px); }
+    .atom:nth-child(5) { transform: rotate(288deg) translate(20px); }
+    
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      opacity: 0;
+    }
+    
+    /* --- Media Query para Responsividade --- */
+    @media (max-width: 768px) {
+      body {
+        height: auto;
+        min-height: 100vh;
+        padding: 20px 0;
+      }
+
+      .quiz-container {
+        width: 95%;
+        padding: 30px 20px;
+      }
+      
+      h2 {
+        font-size: 2rem;
+      }
+
+      .program-name {
+        font-size: 1.2rem;
+      }
+      
+      .buttons-container {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .game-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+  
+  <div class="floating-elements">
+    <div class="floating-element" style="top: 10%; left: 5%;">⚗️</div>
+    <div class="floating-element" style="top: 20%; left: 80%;">🧪</div>
+    <div class="floating-element" style="top: 70%; left: 10%;">🔬</div>
+    <div class="floating-element" style="top: 80%; left: 85%;">🧫</div>
+    
+    <div class="molecule" style="top: 30%; left: 20%;">
+      <div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div>
+    </div>
+    
+    <div class="molecule" style="top: 60%; left: 70%;">
+      <div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div>
+    </div>
+  </div>
+  
+  <div class="quiz-container">
+    <div class="logo">JT</div>
+    <h2>Química Interativa</h2>
+    <div class="program-name">PROGRAMA JOVENS TALENTOS</div>
+    <p class="subtitle">Aprenda química de forma divertida e interativa</p>
+    
+    <input type="text" id="username" placeholder="Digite seu nome" />
+    
+    <div class="buttons-container">
+      <button class="game-btn" onclick="startGame('quiz')">
+        <span class="emoji">🎓</span> Jogo de Quiz
+      </button>
+      <button class="game-btn" onclick="startGame('crossword')">
+        <span class="emoji">🧠</span> Palavras Cruzadas
+      </button>
+      <button class="game-btn" onclick="startGame('quiz_funcoes_organicas')">
+        <span class="emoji">🧪</span> Funções Orgânicas
+      </button>
+      <button class="game-btn" onclick="startGame('memory')">
+  <span class="emoji">🃏</span> Jogo da Memória
+</button>
+<!-- Dentro da div .buttons-container, adicione: -->
+<button class="game-btn" onclick="startGame('timed')">
+  <span class="emoji">⏱️</span> Contra o Tempo
+</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    particlesJS("particles-js", {
+      "particles": { "number": { "value": 30, "density": { "enable": true, "value_area": 800 } }, "color": { "value": "#1abc9c" }, "shape": { "type": "circle" }, "opacity": { "value": 0.5, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1, "sync": false } }, "size": { "value": 8, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 3, "sync": false } }, "line_linked": { "enable": true, "distance": 200, "color": "#3498db", "opacity": 0.4, "width": 2 }, "move": { "enable": true, "speed": 1.5, "direction": "none", "random": true, "straight": false, "out_mode": "bounce", "attract": { "enable": true, "rotateX": 600, "rotateY": 1200 } } }, "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true }, "modes": { "grab": { "distance": 200, "line_linked": { "opacity": 1 } }, "push": { "particles_nb": 4 } } }, "retina_detect": true
+    });
+
+    function startGame(game) {
+      const name = document.getElementById("username").value.trim();
+      if (!name) {
+        const input = document.getElementById("username");
+        input.style.animation = "shake 0.5s";
+        input.style.border = "2px solid var(--accent)";
+        setTimeout(() => {
+          input.style.animation = "";
+          input.style.border = "none";
+        }, 500);
+        
+        createConfetti(false);
+        return;
+      }
+      
+      createConfetti(true);
+      
+      localStorage.setItem("playerName", name);
+      setTimeout(() => {
+        if (game === "quiz") {
+          window.location.href = "quiz.html";
+        } else if (game === "crossword") {
+          window.location.href = "crossword.html";
+        } else if (game === "quiz_funcoes_organicas") {
+          window.location.href = "quiz_funcoes_organicas.html";
+        } else if (game === "memory"){
+          window.location.href ="memory.html";
+        }  else if (game === "timed") {
+  window.location.href = "timed.html";
+}
+
+        
+      }, 1500);
+    }
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function createConfetti(success) {
+      const colors = success ? 
+        ["#1abc9c", "#3498db", "#2980b9", "#2ecc71", "#27ae60"] : 
+        ["#e74c3c", "#c0392b", "#d35400", "#e67e22"];
+      
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+        confetti.style.left = Math.random() * 100 + "vw";
+        confetti.style.top = "-10px";
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        confetti.style.width = Math.random() * 10 + 5 + "px";
+        confetti.style.height = Math.random() * 10 + 5 + "px";
+        confetti.style.opacity = "1";
+        
+        document.body.appendChild(confetti);
+        
+        const animationDuration = Math.random() * 3 + 2;
+        
+        confetti.animate([
+          { top: "-10px", opacity: 1 },
+          { top: "100vh", opacity: 0 }
+        ], {
+          duration: animationDuration * 1000,
+          easing: "cubic-bezier(0.1, 0.8, 0.9, 1)",
+        });
+        
+        setTimeout(() => {
+          confetti.remove();
+        }, animationDuration * 1000);
+      }
+    }
+    
+    const style = document.createElement("style");
+    style.innerHTML = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-5px); }
+        40%, 80% { transform: translateX(5px); }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    const usernameInput = document.getElementById("username");
+    usernameInput.addEventListener("focus", () => {
+      usernameInput.style.transform = "scale(1.05)";
+      usernameInput.style.boxShadow = "0 0 15px rgba(52, 152, 219, 0.5)";
+    });
+    
+    usernameInput.addEventListener("blur", () => {
+      usernameInput.style.transform = "scale(1)";
+      usernameInput.style.boxShadow = "none";
+    });
+  </script>
+</body>
+</html>

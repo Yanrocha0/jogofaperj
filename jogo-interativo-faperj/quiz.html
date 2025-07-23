@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Química</title>
+    <style>
+        /* Estilos com tema azul/preto e fundo de moléculas */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        
+        :root {
+            --primary: #2980b9;
+            --secondary: #3498db;
+            --accent: #1abc9c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --correct: #2ecc71;
+            --incorrect: #e74c3c;
+            --warning: #f39c12;
+            --easy: #2ecc71;
+            --medium: #3498db;
+            --hard: #9b59b6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            overflow: hidden;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--dark), var(--primary));
+            color: var(--light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .quiz-container {
+            position: relative;
+            z-index: 2;
+            width: 90%;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .character {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .character-img {
+            width: 150px;
+            height: auto;
+            border-radius: 50%;
+            border: 5px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(26, 188, 156, 0.5);
+        }
+        
+        .speech-bubble {
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 15px 15px 0;
+            border-style: solid;
+            border-color: rgba(255, 255, 255, 0.9) transparent;
+        }
+        
+        #question {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .difficulty-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        .difficulty-easy {
+            background-color: var(--easy);
+        }
+        
+        .difficulty-medium {
+            background-color: var(--medium);
+        }
+        
+        .difficulty-hard {
+            background-color: var(--hard);
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .option {
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .option:active {
+            transform: translateY(0);
+        }
+
+        .option.correct {
+            background: rgba(46, 204, 113, 0.3);
+            border: 2px solid var(--correct);
+            animation: pulse 0.5s;
+        }
+
+        .option.wrong {
+            background: rgba(231, 76, 60, 0.3);
+            border: 2px solid var(--incorrect);
+            animation: shake 0.5s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        
+        #progress-text {
+            color: var(--light);
+            margin-bottom: 15px;
+            font-size: 1rem;
+            grid-column: 1 / -1;
+        }
+        
+        #feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            grid-column: 1 / -1;
+        }
+        
+        #feedback.correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--correct);
+        }
+        
+        #feedback.incorrect {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--incorrect);
+        }
+        
+        #explanation-box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border-left: 5px solid var(--accent);
+            grid-column: 1 / -1;
+        }
+        
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        #explanation-text {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        #next-btn, button[onclick^="startGame()"], #review-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+        }
+        
+        #next-btn:hover, button[onclick^="startGame()"]:hover, #review-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(41, 128, 185, 0.4);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+        
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        #result-container {
+            margin-top: 30px;
+            animation: fadeIn 1s;
+        }
+        
+        #result-container h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+        
+        #score-text {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .score-details {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+        }
+        
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .badges-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f39c12, #f1c40f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            opacity: 0.3;
+            transition: all 0.3s;
+        }
+        
+        .badge.unlocked {
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.5);
+        }
+        
+        .badge-tooltip {
+            position: absolute;
+            bottom: -40px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .badge:hover .badge-tooltip {
+            visibility: visible;
+            opacity: 1;
+            bottom: -50px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Elementos flutuantes */
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-50px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+        
+        .molecule {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: moleculeFloat 20s infinite linear;
+        }
+        
+        @keyframes moleculeFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(50px, -30px) rotate(90deg); }
+            50% { transform: translate(0, -60px) rotate(180deg); }
+            75% { transform: translate(-50px, -30px) rotate(270deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+        
+        .atom {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+        
+        .atom:nth-child(1) { transform: rotate(0deg) translate(20px); }
+        .atom:nth-child(2) { transform: rotate(72deg) translate(20px); }
+        .atom:nth-child(3) { transform: rotate(144deg) translate(20px); }
+        .atom:nth-child(4) { transform: rotate(216deg) translate(20px); }
+        .atom:nth-child(5) { transform: rotate(288deg) translate(20px); }
+        
+        /* Timer styles */
+        #timer-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+            grid-column: 1 / -1;
+        }
+        
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--accent);
+            border-radius: 5px;
+            transition: width 0.1s linear, background-color 0.3s;
+        }
+        
+        #timer-bar.warning {
+            background: var(--warning);
+            animation: pulse 1s infinite;
+        }
+        
+        #timer-bar.danger {
+            background: var(--incorrect);
+            animation: pulse 0.5s infinite;
+        }
+        
+        #time-left {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            color: var(--light);
+            grid-column: 1 / -1;
+        }
+        
+        @media (max-width: 768px) {
+            .quiz-container {
+                width: 95%;
+                padding: 30px 20px;
+            }
+            
+            .character-img {
+                width: 120px;
+            }
+            
+            .speech-bubble {
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+
+              @media (max-width: 480px) {
+            /* Ajustes para telas muito pequenas (smartphones) */
+            .quiz-container {
+                padding: 20px 15px;
+                width: 98%;
+                border-radius: 15px;
+            }
+            
+            .character-img {
+                width: 100px;
+            }
+            
+            .speech-bubble {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+            
+            #question {
+                font-size: 1rem;
+                line-height: 1.4;
+            }
+            
+            .options {
+                gap: 10px;
+            }
+            
+            .option {
+                padding: 12px;
+                font-size: 0.9rem;
+                min-height: 50px;
+            }
+            
+            #explanation-box {
+                padding: 15px;
+            }
+            
+            #next-btn, button[onclick^="startGame()"], #review-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .home-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                top: 10px;
+                left: 10px;
+            }
+            
+            .floating-element {
+                font-size: 1.5rem;
+            }
+            
+            .molecule {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .atom {
+                width: 8px;
+                height: 8px;
+            }
+            
+            .atom:nth-child(1) { transform: rotate(0deg) translate(15px); }
+            .atom:nth-child(2) { transform: rotate(72deg) translate(15px); }
+            .atom:nth-child(3) { transform: rotate(144deg) translate(15px); }
+            .atom:nth-child(4) { transform: rotate(216deg) translate(15px); }
+            .atom:nth-child(5) { transform: rotate(288deg) translate(15px); }
+        }
+
+        /* iOS específico - ajustar inputs */
+        @supports (-webkit-touch-callout: none) {
+            .option {
+                -webkit-tap-highlight-color: transparent;
+            }
+        }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="floating-elements">
+        <div class="floating-element" style="top: 10%; left: 5%;">⚗️</div>
+        <div class="floating-element" style="top: 20%; left: 80%;">🧪</div>
+        <div class="floating-element" style="top: 70%; left: 10%;">🔬</div>
+        <div class="floating-element" style="top: 80%; left: 85%;">🧫</div>
+        
+        <div class="molecule" style="top: 30%; left: 20%;">
+            <div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div>
+        </div>
+        
+        <div class="molecule" style="top: 60%; left: 70%;">
+            <div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div>
+        </div>
+    </div>
+    
+    <div class="quiz-container">
+        <div class="character">
+            <div class="speech-bubble" id="speech-bubble">
+                <p id="question">Carregando...</p>
+            </div>
+            <img src="scientist.png" alt="Boneco Falante" class="character-img">
+        </div>
+
+        <div id="explanation-box" class="hidden">
+            <p id="question-in-explanation" class="question-text"></p>
+            <p id="explanation-text"></p>
+            <button id="next-btn">Próxima ➡️</button>
+        </div>
+
+        <div class="options">
+            <p id="progress-text" style="font-weight: bold; margin-top: 20px;"></p>
+            <div id="timer-container">
+                <div id="timer-bar"></div>
+            </div>
+            <div id="time-left"></div>
+            <button class="option" onclick="checkAnswer(0)">Opção 1</button>
+            <button class="option" onclick="checkAnswer(1)">Opção 2</button>
+            <button class="option" onclick="checkAnswer(2)">Opção 3</button>
+            <button class="option" onclick="checkAnswer(3)">Opção 4</button>
+
+            <div id="feedback" class="hidden">
+                <span id="feedback-icon"></span>
+            </div>
+        </div>
+
+        <button class="home-btn" onclick="goToHome()" title="Voltar para o Início">🏠</button>
+
+        <div id="result-container" class="hidden">
+            <h2>Fim do Quiz! 🎉</h2>
+            <p id="score-text"></p>
+            
+            <div class="score-details">
+                <div class="score-item">
+                    <span>Perguntas respondidas:</span>
+                    <span id="total-questions">0</span>
+                </div>
+                <div class="score-item">
+                    <span>Acertos:</span>
+                    <span id="correct-answers">0</span>
+                </div>
+                <div class="score-item">
+                    <span>Erros:</span>
+                    <span id="wrong-answers">0</span>
+                </div>
+                <div class="score-item">
+                    <span>Tempo médio por pergunta:</span>
+                    <span id="average-time">0s</span>
+                </div>
+                <div class="score-item">
+                    <span>Pontuação final:</span>
+                    <span id="final-score">0</span>
+                </div>
+            </div>
+
+            <div class="badges-container" id="badges-container">
+                <div class="badge" id="badge-speed">
+                    ⚡
+                    <div class="badge-tooltip">Mestre da Velocidade</div>
+                </div>
+                <div class="badge" id="badge-perfection">
+                    💯
+                    <div class="badge-tooltip">Perfeição</div>
+                </div>
+                <div class="badge" id="badge-chemist">
+                    🧪
+                    <div class="badge-tooltip">Jovem Químico</div>
+                </div>
+            </div>
+            
+            <p id="player-name" style="margin-top: 10px; font-weight: bold;"></p>
+            <div class="button-group">
+                <button onclick="startGame()">🔄 Reiniciar</button>
+                <button id="review-btn" onclick="startReview()">📖 Revisar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Configuração das partículas como moléculas
+        particlesJS("particles-js", {
+            "particles": { "number": { "value": 30, "density": { "enable": true, "value_area": 800 } }, "color": { "value": "#1abc9c" }, "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" }, "polygon": { "nb_sides": 6 } }, "opacity": { "value": 0.5, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1, "sync": false } }, "size": { "value": 8, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 3, "sync": false } }, "line_linked": { "enable": true, "distance": 200, "color": "#3498db", "opacity": 0.4, "width": 2 }, "move": { "enable": true, "speed": 1.5, "direction": "none", "random": true, "straight": false, "out_mode": "bounce", "bounce": true, "attract": { "enable": true, "rotateX": 600, "rotateY": 1200 } } }, "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true }, "modes": { "grab": { "distance": 200, "line_linked": { "opacity": 1 } }, "bubble": { "distance": 400, "size": 40, "duration": 2, "opacity": 8, "speed": 3 }, "repulse": { "distance": 200, "duration": 0.4 }, "push": { "particles_nb": 4 }, "remove": { "particles_nb": 2 } } }, "retina_detect": true
+        });
+
+        // Banco de dados de perguntas com níveis de dificuldade
+        const questions = [
+            { question: "Qual é o número de oxidação do oxigênio na maioria dos compostos?", options: ["-2", "+2", "0", "-1"], correct: 0, explanation: "O oxigênio geralmente possui número de oxidação -2.", difficulty: "easy", basePoints: 10 },
+            { question: "Em uma reação redox, o agente oxidante é a substância que:", options: ["Perde elétrons", "Ganha elétrons", "É oxidada", "É neutra"], correct: 1, explanation: "O agente oxidante é a substância que ganha elétrons e, portanto, é reduzida.", difficulty: "medium", basePoints: 15 },
+            { question: "O que ocorre com o número de oxidação de um elemento que sofre oxidação?", options: ["Aumenta", "Diminui", "Permanece o mesmo", "Torna-se zero"], correct: 0, explanation: "Na oxidação, o número de oxidação de um elemento aumenta devido à perda de elétrons.", difficulty: "easy", basePoints: 10 },
+            { question: "Qual é o nome da reação entre um óxido ácido e uma base?", options: ["Neutralização", "Saponificação", "Esterificação", "Hidrólise"], correct: 0, explanation: "A reação entre um óxido ácido e uma base é uma neutralização, formando sal e água.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual dessas substâncias é um óxido básico?", options: ["Na₂O", "CO₂", "SO₃", "NO₂"], correct: 0, explanation: "Na₂O é um óxido básico que reage com água formando uma base.", difficulty: "hard", basePoints: 20 },
+            { question: "Qual elemento é essencial em todos os compostos orgânicos?", options: ["Carbono", "Oxigênio", "Nitrogênio", "Hidrogênio"], correct: 0, explanation: "Todos os compostos orgânicos contêm carbono, que forma ligações covalentes estáveis.", difficulty: "easy", basePoints: 10 },
+            { question: "Qual função orgânica está presente no etanol?", options: ["Álcool", "Ácido carboxílico", "Cetona", "Éter"], correct: 0, explanation: "O etanol (CH₃CH₂OH) pertence à função álcool devido ao grupo hidroxila (-OH).", difficulty: "medium", basePoints: 15 },
+            { question: "Qual é o produto da reação entre um ácido carboxílico e um álcool?", options: ["Éster", "Aldeído", "Cetona", "Éter"], correct: 0, explanation: "A reação entre ácido carboxílico e álcool produz um éster e água (esterificação).", difficulty: "hard", basePoints: 20 },
+            { question: "Qual destes compostos é um hidrocarboneto aromático?", options: ["Benzeno", "Eteno", "Etino", "Butano"], correct: 0, explanation: "O benzeno (C₆H₆) é o hidrocarboneto aromático mais simples, com estrutura de anel.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual é a função do grupo amino (-NH₂) em moléculas orgânicas?", options: ["Caracteriza as aminas", "Caracteriza os ácidos", "Caracteriza os álcoois", "Caracteriza os éteres"], correct: 0, explanation: "O grupo amino (-NH₂) é característico das aminas, importantes em bioquímica.", difficulty: "easy", basePoints: 10 },
+            { question: "Qual elemento é reduzido na reação: 2Mg + O₂ → 2MgO?", options: ["Magnésio", "Oxigênio", "Ambos", "Nenhum"], correct: 1, explanation: "O oxigênio é reduzido (número de oxidação muda de 0 para -2), enquanto o magnésio é oxidado.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual desses compostos é um óxido anfótero?", options: ["Al₂O₃", "CO₂", "CaO", "SO₂"], correct: 0, explanation: "Al₂O₃ é um óxido anfótero, podendo reagir tanto com ácidos quanto com bases.", difficulty: "hard", basePoints: 20 },
+            { question: "Qual é a principal característica dos alcanos?", options: ["Ligações simples apenas", "Pelo menos uma dupla ligação", "Pelo menos uma tripla ligação", "Grupos funcionais oxigenados"], correct: 0, explanation: "Alcanos são hidrocarbonetos saturados contendo apenas ligações simples entre átomos de carbono.", difficulty: "easy", basePoints: 10 },
+            { question: "Qual é o produto da oxidação de um álcool primário?", options: ["Aldeído", "Cetona", "Ácido carboxílico", "Éter"], correct: 0, explanation: "Álcoois primários oxidam primeiro a aldeídos e podem oxidar ainda mais a ácidos carboxílicos.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual destes compostos apresenta isomeria cis-trans?", options: ["2-buteno", "Etano", "Propeno", "Ciclobutano"], correct: 0, explanation: "O 2-buteno (CH₃CH=CHCH₃) apresenta isomeria geométrica cis-trans devido à dupla ligação restrita.", difficulty: "hard", basePoints: 20 },
+            { question: "Qual é a função orgânica do composto CH₃COOH?", options: ["Ácido carboxílico", "Álcool", "Éster", "Cetona"], correct: 0, explanation: "CH₃COOH (ácido acético) possui o grupo carboxila (-COOH), característico de ácidos carboxílicos.", difficulty: "easy", basePoints: 10 },
+            { question: "Qual dessas reações caracteriza uma combustão completa?", options: ["CH₄ + 2O₂ → CO₂ + 2H₂O", "CH₄ + O₂ → C + 2H₂O", "C₂H₄ + O₂ → CO + H₂O", "C₃H₈ + O₂ → C + CO + H₂O"], correct: 0, explanation: "Combustão completa produz CO₂ e H₂O, enquanto a incompleta produz CO, C ou outros subprodutos.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual é o número de oxidação do enxofre no H₂SO₄?", options: ["+6", "+4", "-2", "0"], correct: 0, explanation: "No H₂SO₄, o enxofre tem número de oxidação +6 (H=+1, O=-2, total=0).", difficulty: "hard", basePoints: 20 },
+            { question: "Qual destes compostos é uma amina primária?", options: ["CH₃NH₂", "(CH₃)₂NH", "(CH₃)₃N", "CH₃CONH₂"], correct: 0, explanation: "CH₃NH₂ (metilamina) é uma amina primária, com apenas um grupo orgânico ligado ao nitrogênio.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual é o produto da reação entre um ácido e uma base?", options: ["Sal e água", "Éster e água", "Álcool e CO₂", "Óxido e hidrogênio"], correct: 0, explanation: "Reações ácido-base (neutralização) produzem sal e água como produtos.", difficulty: "easy", basePoints: 10 },
+            { question: "Qual destes é um exemplo de haleto orgânico?", options: ["CH₃Cl", "CH₃OH", "CH₃COOH", "CH₃OCH₃"], correct: 0, explanation: "CH₃Cl (clorometano) é um haleto orgânico, contendo um átomo de halogênio ligado a carbono.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual é a geometria molecular do carbono no metano (CH₄)?", options: ["Tetraédrica", "Trigonal plana", "Linear", "Angular"], correct: 0, explanation: "O carbono no CH₄ apresenta hibridização sp³ e geometria tetraédrica (109,5°).", difficulty: "hard", basePoints: 20 },
+            { question: "Qual elemento tem sempre número de oxidação +1 em compostos iônicos?", options: ["Sódio", "Cálcio", "Alumínio", "Ferro"], correct: 0, explanation: "Metais alcalinos como o sódio (grupo 1) sempre têm número de oxidação +1 em compostos iônicos.", difficulty: "easy", basePoints: 10 },
+            { question: "Qual é a função orgânica da acetona (CH₃COCH₃)?", options: ["Cetona", "Aldeído", "Álcool", "Éter"], correct: 0, explanation: "A acetona (propanona) possui o grupo carbonila (C=O) no meio da cadeia, caracterizando cetona.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual destes compostos apresenta caráter básico?", options: ["NH₃", "HCl", "H₂SO₄", "H₂O"], correct: 0, explanation: "A amônia (NH₃) é uma base de Lewis por possuir par de elétrons disponível no nitrogênio.", difficulty: "hard", basePoints: 20 },
+            { question: "Quantos elétrons o carbono compartilha em ligações covalentes?", options: ["4", "2", "6", "1"], correct: 0, explanation: "O carbono forma 4 ligações covalentes para completar seu octeto (configuração estável).", difficulty: "easy", basePoints: 10 },
+            { question: "Qual destes é um exemplo de polímero natural?", options: ["Celulose", "Poliestireno", "PVC", "Nylon"], correct: 0, explanation: "A celulose é um polímero natural encontrado em plantas, enquanto os outros são sintéticos.", difficulty: "medium", basePoints: 15 },
+            { question: "Qual é o estado de oxidação do cromo no K₂Cr₂O₇?", options: ["+6", "+3", "+2", "0"], correct: 0, explanation: "No dicromato de potássio, cada cromo tem número de oxidação +6 (K=+1, O=-2).", difficulty: "hard", basePoints: 20 },
+            { question: "Qual destes grupos funcionais caracteriza um éter?", options: ["-O-", "-OH", "-CHO", "-COOH"], correct: 0, explanation: "Éteres possuem um átomo de oxigênio ligado a dois radicais de carbono (R-O-R').", difficulty: "easy", basePoints: 10 }
+        ];
+
+        let shuffledQuestions;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let playerName = localStorage.getItem("playerName") || "Você";
+        let timeLeft = 30;
+        let totalTime = 0;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let questionStartTime;
+        let timerInterval;
+        let reviewMode = false;
+        let answeredQuestions = [];
+        let currentReviewIndex = 0;
+
+        const questionElement = document.getElementById("question");
+        const speechBubble = document.getElementById("speech-bubble");
+        const explanationBox = document.getElementById("explanation-box");
+        const explanationText = document.getElementById("explanation-text");
+        const nextBtn = document.getElementById("next-btn");
+        const questionInExplanation = document.getElementById("question-in-explanation");
+        const playerNameElement = document.getElementById("player-name");
+        const timerBar = document.getElementById("timer-bar");
+        const timeLeftElement = document.getElementById("time-left");
+        const feedbackElement = document.getElementById("feedback");
+        const progressText = document.getElementById("progress-text");
+        const optionButtons = document.querySelectorAll(".option");
+        const totalQuestionsElement = document.getElementById("total-questions");
+        const correctAnswersElement = document.getElementById("correct-answers");
+        const wrongAnswersElement = document.getElementById("wrong-answers");
+        const averageTimeElement = document.getElementById("average-time");
+        const finalScoreElement = document.getElementById("final-score");
+        const scoreText = document.getElementById("score-text");
+        const badgeSpeed = document.getElementById("badge-speed");
+        const badgePerfection = document.getElementById("badge-perfection");
+        const badgeChemist = document.getElementById("badge-chemist");
+
+        // Exibe o nome do jogador
+        playerNameElement.textContent = playerName;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame() {
+            reviewMode = false;
+            shuffledQuestions = shuffleArray([...questions]).slice(0, 10);
+            currentQuestionIndex = 0;
+            score = 0;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            totalTime = 0;
+            answeredQuestions = [];
+            document.querySelector(".options").style.display = "grid";
+            document.getElementById("result-container").classList.add("hidden");
+            document.getElementById("explanation-box").classList.add("hidden");
+            feedbackElement.classList.add("hidden");
+            // Resetar badges
+            badgeSpeed.classList.remove("unlocked");
+            badgePerfection.classList.remove("unlocked");
+            badgeChemist.classList.remove("unlocked");
+            loadQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            
+            timeLeft = currentQuestion.difficulty === "easy" ? 30 : 
+                      currentQuestion.difficulty === "medium" ? 25 : 20;
+            
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const maxTime = currentQuestion.difficulty === "easy" ? 30 : 
+                          currentQuestion.difficulty === "medium" ? 25 : 20;
+            const percentage = (timeLeft / maxTime) * 100;
+            
+            timerBar.style.width = `${percentage}%`;
+            timeLeftElement.textContent = `${timeLeft}s restantes`;
+            
+            timerBar.classList.remove("warning", "danger");
+            if (timeLeft <= Math.floor(maxTime * 0.2)) {
+                timerBar.classList.add("danger");
+            } else if (timeLeft <= Math.floor(maxTime * 0.4)) {
+                timerBar.classList.add("warning");
+            }
+        }
+
+        function timeUp() {
+            const q = shuffledQuestions[currentQuestionIndex];
+            const maxTime = q.difficulty === "easy" ? 30 : q.difficulty === "medium" ? 25 : 20;
+            
+            optionButtons.forEach(btn => btn.disabled = true);
+            optionButtons[q.correct].classList.add("correct");
+            
+            wrongAnswers++;
+            feedbackElement.textContent = "⏰ Tempo esgotado!";
+            feedbackElement.classList.remove("hidden", "correct");
+            feedbackElement.classList.add("incorrect");
+
+            answeredQuestions.push({
+                ...q,
+                selected: -1,
+                isCorrect: false,
+                timeSpent: maxTime
+            });
+            totalTime += maxTime;
+            
+            showExplanation(currentQuestionIndex);
+        }
+
+        function loadQuestion() {
+            if (reviewMode) return;
+            speechBubble.classList.remove("hidden");
+            explanationBox.classList.add("hidden");
+            feedbackElement.classList.add("hidden");
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            let difficultyClass = "";
+            let difficultyText = "";
+            if (q.difficulty === "easy") {
+                difficultyClass = "difficulty-easy"; difficultyText = "Fácil";
+            } else if (q.difficulty === "medium") {
+                difficultyClass = "difficulty-medium"; difficultyText = "Médio";
+            } else if (q.difficulty === "hard") {
+                difficultyClass = "difficulty-hard"; difficultyText = "Difícil";
+            }
+
+            questionElement.innerHTML = q.question + `<span class="difficulty-badge ${difficultyClass}">${difficultyText}</span>`;
+            progressText.innerText = `Pergunta ${currentQuestionIndex + 1} de ${shuffledQuestions.length}`;
+            
+            optionButtons.forEach((btn, index) => {
+                btn.innerText = q.options[index];
+                btn.className = "option";
+                btn.disabled = false;
+                btn.onclick = () => checkAnswer(index);
+            });
+            
+            questionStartTime = new Date().getTime();
+            startTimer();
+        }
+
+        function checkAnswer(selectedIndex) {
+            clearInterval(timerInterval);
+            
+            const q = shuffledQuestions[currentQuestionIndex];
+            const maxTime = q.difficulty === "easy" ? 30 : q.difficulty === "medium" ? 25 : 20;
+            const timeSpent = maxTime - timeLeft;
+            totalTime += timeSpent;
+            
+            optionButtons.forEach(btn => btn.disabled = true);
+            
+            const isCorrect = selectedIndex === q.correct;
+            optionButtons[selectedIndex].classList.add(isCorrect ? "correct" : "wrong");
+            
+            if (!isCorrect) {
+                optionButtons[q.correct].classList.add("correct");
+            }
+
+            answeredQuestions.push({
+                ...q,
+                selected: selectedIndex,
+                isCorrect: isCorrect,
+                timeSpent: timeSpent
+            });
+
+            if (isCorrect) {
+                const timeBonus = Math.max(0, Math.floor(timeLeft * (q.difficulty === "easy" ? 0.5 : q.difficulty === "medium" ? 0.75 : 1)));
+                score += q.basePoints + timeBonus;
+                correctAnswers++;
+                feedbackElement.innerHTML = `✅ Correto! +${q.basePoints} pontos <small>(+${timeBonus} bônus)</small>`;
+                feedbackElement.className = "correct";
+                
+                setTimeout(nextQuestion, 1500);
+            } else {
+                wrongAnswers++;
+                feedbackElement.textContent = "❌ Incorreto!";
+                feedbackElement.className = "incorrect";
+                showExplanation(currentQuestionIndex);
+            }
+            feedbackElement.classList.remove("hidden");
+        }
+
+        function showExplanation(index) {
+            const q = shuffledQuestions[index];
+            explanationText.textContent = q.explanation;
+            questionInExplanation.textContent = q.question;
+            explanationBox.classList.remove("hidden");
+            speechBubble.classList.add("hidden");
+        }
+
+        nextBtn.addEventListener("click", () => {
+            if (reviewMode) {
+                currentReviewIndex++;
+                if (currentReviewIndex < answeredQuestions.length) {
+                    loadReviewQuestion();
+                } else {
+                    showResult();
+                }
+            } else {
+                nextQuestion();
+            }
+        });
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            const averageTime = totalTime / shuffledQuestions.length;
+            
+            scoreText.textContent = `Você acertou ${correctAnswers} de ${shuffledQuestions.length}!`;
+            totalQuestionsElement.textContent = shuffledQuestions.length;
+            correctAnswersElement.textContent = correctAnswers;
+            wrongAnswersElement.textContent = wrongAnswers;
+            averageTimeElement.textContent = averageTime.toFixed(1) + "s";
+            finalScoreElement.textContent = score;
+
+            checkAchievements();
+            
+            document.getElementById("result-container").classList.remove("hidden");
+            document.querySelector(".options").style.display = "none";
+            speechBubble.classList.add("hidden");
+            explanationBox.classList.add("hidden");
+            feedbackElement.classList.add("hidden");
+        }
+        
+        function checkAchievements() {
+            if (totalTime / shuffledQuestions.length < 10) {
+                badgeSpeed.classList.add("unlocked");
+            }
+            if (correctAnswers === shuffledQuestions.length && shuffledQuestions.length > 0) {
+                badgePerfection.classList.add("unlocked");
+            }
+            if (shuffledQuestions.length > 0) {
+                badgeChemist.classList.add("unlocked");
+            }
+        }
+
+        function startReview() {
+            reviewMode = true;
+            currentReviewIndex = 0;
+            document.getElementById("result-container").classList.add("hidden");
+            document.querySelector(".options").style.display = "grid";
+            loadReviewQuestion();
+        }
+
+        function loadReviewQuestion() {
+            const q = answeredQuestions[currentReviewIndex];
+            let difficultyClass = q.difficulty === "easy" ? "difficulty-easy" : q.difficulty === "medium" ? "difficulty-medium" : "difficulty-hard";
+            let difficultyText = q.difficulty === "easy" ? "Fácil" : q.difficulty === "medium" ? "Médio" : "Difícil";
+            
+            questionElement.innerHTML = q.question + `<span class="difficulty-badge ${difficultyClass}">${difficultyText}</span>`;
+            progressText.textContent = `Revisão ${currentReviewIndex + 1} de ${answeredQuestions.length}`;
+            
+            optionButtons.forEach((btn, index) => {
+                btn.innerText = q.options[index];
+                btn.className = "option";
+                btn.disabled = true;
+                if (index === q.correct) btn.classList.add("correct");
+                else if (index === q.selected) btn.classList.add("wrong");
+            });
+            
+            timerBar.style.width = "0%";
+            timeLeftElement.textContent = "Modo Revisão";
+            
+            showExplanation(shuffledQuestions.findIndex(sq => sq.question === q.question));
+        }
+
+        function goToHome() {
+            window.location.href = "index.html"; // Supondo que você tenha uma página inicial
+        }
+
+        // Inicia o jogo quando a página carrega
+        startGame();
+    </script>
+</body>
+</html>

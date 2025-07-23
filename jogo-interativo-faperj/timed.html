@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contra o Tempo - Química</title>
+    <link rel="stylesheet" href="timed.css">
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="floating-elements">
+        <div class="floating-element" style="top: 10%; left: 5%;">⚗️</div>
+        <div class="floating-element" style="top: 20%; left: 80%;">🧪</div>
+        <div class="floating-element" style="top: 70%; left: 10%;">🔬</div>
+        <div class="floating-element" style="top: 80%; left: 85%;">🧫</div>
+        
+        <div class="molecule" style="top: 30%; left: 20%;">
+            <div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div>
+        </div>
+        
+        <div class="molecule" style="top: 60%; left: 70%;">
+            <div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div>
+        </div>
+    </div>
+    
+    <div class="quiz-container">
+        <div class="character">
+            <div class="speech-bubble" id="speech-bubble">
+                <p id="question">Carregando...</p>
+            </div>
+            <img src="scientist.png" alt="Boneco Falante" class="character-img">
+        </div>
+
+        <div id="game-timer">01:00</div>
+        <div id="multiplier">Multiplicador: 1x</div>
+        <div id="questions-answered">Perguntas respondidas: 0</div>
+
+        <div id="explanation-box" class="hidden">
+            <p id="question-in-explanation" class="question-text"></p>
+            <p id="explanation-text"></p>
+            <button id="next-btn">Próxima ➡️</button>
+        </div>
+
+        <div class="options">
+            <div id="timer-container">
+                <div id="timer-bar"></div>
+            </div>
+            <div id="time-left"></div>
+            <button class="option" onclick="checkAnswer(0)">Opção 1</button>
+            <button class="option" onclick="checkAnswer(1)">Opção 2</button>
+            <button class="option" onclick="checkAnswer(2)">Opção 3</button>
+            <button class="option" onclick="checkAnswer(3)">Opção 4</button>
+
+            <div id="feedback" class="hidden">
+                <span id="feedback-icon"></span>
+            </div>
+        </div>
+
+        <button class="home-btn" onclick="goToHome()" title="Voltar para o Início">🏠</button>
+
+        <div id="result-container" class="hidden">
+            <h2>Fim do Desafio! ⏱️</h2>
+            <p id="score-text"></p>
+            
+            <div class="score-details">
+                <div class="score-item">
+                    <span>Perguntas respondidas:</span>
+                    <span id="total-questions">0</span>
+                </div>
+                <div class="score-item">
+                    <span>Acertos:</span>
+                    <span id="correct-answers">0</span>
+                </div>
+                <div class="score-item">
+                    <span>Erros:</span>
+                    <span id="wrong-answers">0</span>
+                </div>
+                <div class="score-item">
+                    <span>Maior multiplicador:</span>
+                    <span id="max-multiplier">1x</span>
+                </div>
+                <div class="score-item">
+                    <span>Pontuação final:</span>
+                    <span id="final-score">0</span>
+                </div>
+            </div>
+
+            <div class="badges-container" id="badges-container">
+                <div class="badge" id="badge-speed">
+                    ⚡
+                    <div class="badge-tooltip">Mestre da Velocidade</div>
+                </div>
+                <div class="badge" id="badge-streak">
+                    🔥
+                    <div class="badge-tooltip">Sequência Incrível</div>
+                </div>
+                <div class="badge" id="badge-survivor">
+                    🏆
+                    <div class="badge-tooltip">Sobrevivente</div>
+                </div>
+            </div>
+            
+            <p id="player-name" style="margin-top: 10px; font-weight: bold;"></p>
+            <div class="button-group">
+                <button onclick="startGame()">🔄 Jogar Novamente</button>
+                <button onclick="goToHome()">🏠 Voltar ao Início</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="timed.js"></script>
+</body>
+</html>

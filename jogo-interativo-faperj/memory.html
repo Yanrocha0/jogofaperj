@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Memória - Química</title>
+  <link rel="stylesheet" href="memory.css">
+</head>
+<body>
+  <div id="particles-js"></div>
+  
+  <div class="floating-elements">
+    <div class="floating-element" style="top: 10%; left: 5%;">⚗️</div>
+    <div class="floating-element" style="top: 20%; left: 80%;">🧪</div>
+    <div class="floating-element" style="top: 70%; left: 10%;">🔬</div>
+    <div class="floating-element" style="top: 80%; left: 85%;">🧫</div>
+    
+    <div class="molecule" style="top: 30%; left: 20%;">
+      <div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div>
+    </div>
+    
+    <div class="molecule" style="top: 60%; left: 70%;">
+      <div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div><div class="atom"></div>
+    </div>
+  </div>
+  
+  <div class="game-container">
+    <button class="home-btn" onclick="goToHome()" title="Voltar para o Início">🏠</button>
+    
+    <h2>Jogo da Memória - Química</h2>
+    
+    <div id="setup-screen">
+      <p>Combine os conceitos de química orgânica e inorgânica com suas definições ou exemplos.</p>
+      
+      <div class="difficulty-selector">
+        <button class="difficulty-btn difficulty-extreme-easy" onclick="setDifficulty('extreme-easy')">Ext. Fácil (2 pares)</button>
+        <button class="difficulty-btn difficulty-easy" onclick="setDifficulty('easy')">Fácil (4 pares)</button>
+        <button class="difficulty-btn difficulty-medium" onclick="setDifficulty('medium')">Mediano (6 pares)</button>
+        <button class="difficulty-btn difficulty-hard" onclick="setDifficulty('hard')">Difícil (8 pares)</button>
+        <button class="difficulty-btn difficulty-extreme" onclick="setDifficulty('extreme')">Ext. Difícil (10 pares)</button>
+      </div>
+      
+      <button class="game-btn" onclick="startGame()">Iniciar Jogo</button>
+    </div>
+    
+    <div id="game-screen" style="display: none;">
+      <div class="stats">
+        <div><span>🔍 Tentativas:</span> <span id="attempts">0</span></div>
+        <div><span>⏱️ Tempo:</span> <span id="timer">00:00</span></div>
+        <div><span>🎯 Acertos:</span> <span id="matches">0</span></div>
+      </div>
+      
+      <div class="memory-board" id="memory-board"></div>
+      
+      <div class="button-group">
+        <button class="game-btn" onclick="restartGame()">Reiniciar</button>
+        <button class="game-btn" onclick="newGame()">Novo Jogo</button>
+        <button class="hint-btn" id="hint-btn" onclick="giveHint()">Dica</button>
+      </div>
+    </div>
+    
+    <div id="result-screen" class="result-container">
+      <h3>Parabéns! 🎉</h3>
+      <div class="result-stats">
+        <div><span>Pares encontrados:</span> <span id="final-matches">0</span></div>
+        <div><span>Tentativas:</span> <span id="final-attempts">0</span></div>
+        <div><span>Tempo total:</span> <span id="final-time">00:00</span></div>
+        <div><span>Dificuldade:</span> <span id="final-difficulty">Fácil</span></div>
+      </div>
+      <div class="button-group">
+        <button class="game-btn" onclick="restartGame()">Jogar Novamente</button>
+        <button class="game-btn" onclick="newGame()">Nova Partida</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    // Configuração das partículas como moléculas
+    particlesJS("particles-js", {
+      "particles": { 
+        "number": { 
+          "value": 30, 
+          "density": { 
+            "enable": true, 
+            "value_area": 800 
+          } 
+        }, 
+        "color": { 
+          "value": "#1abc9c" 
+        }, 
+        "shape": { 
+          "type": "circle", 
+          "stroke": { 
+            "width": 0, 
+            "color": "#000000" 
+          }, 
+          "polygon": { 
+            "nb_sides": 6 
+          } 
+        }, 
+        "opacity": { 
+          "value": 0.5, 
+          "random": true, 
+          "anim": { 
+            "enable": true, 
+            "speed": 1, 
+            "opacity_min": 0.1, 
+            "sync": false 
+          } 
+        }, 
+        "size": { 
+          "value": 8, 
+          "random": true, 
+          "anim": { 
+            "enable": true, 
+            "speed": 2, 
+            "size_min": 3, 
+            "sync": false 
+          } 
+        }, 
+        "line_linked": { 
+          "enable": true, 
+          "distance": 200, 
+          "color": "#3498db", 
+          "opacity": 0.4, 
+          "width": 2 
+        }, 
+        "move": { 
+          "enable": true, 
+          "speed": 1.5, 
+          "direction": "none", 
+          "random": true, 
+          "straight": false, 
+          "out_mode": "bounce", 
+          "bounce": true, 
+          "attract": { 
+            "enable": true, 
+            "rotateX": 600, 
+            "rotateY": 1200 
+          } 
+        } 
+      }, 
+      "interactivity": { 
+        "detect_on": "canvas", 
+        "events": { 
+          "onhover": { 
+            "enable": true, 
+            "mode": "grab" 
+          }, 
+          "onclick": { 
+            "enable": true, 
+            "mode": "push" 
+          }, 
+          "resize": true 
+        }, 
+        "modes": { 
+          "grab": { 
+            "distance": 200, 
+            "line_linked": { 
+              "opacity": 1 
+            } 
+          }, 
+          "bubble": { 
+            "distance": 400, 
+            "size": 40, 
+            "duration": 2, 
+            "opacity": 8, 
+            "speed": 3 
+          }, 
+          "repulse": { 
+            "distance": 200, 
+            "duration": 0.4 
+          }, 
+          "push": { 
+            "particles_nb": 4 
+          }, 
+          "remove": { 
+            "particles_nb": 2 
+          } 
+        } 
+      }, 
+      "retina_detect": true
+    });
+
+    // Conteúdo do jogo - pares de química orgânica e inorgânica
+    const chemistryPairs = [
+      { front: "Etanol (CH₃CH₂OH)", back: "Álcool presente em bebidas e combustível" },
+      { front: "Ácido acético (CH₃COOH)", back: "Componente principal do vinagre" },
+      { front: "Acetona (CH₃COCH₃)", back: "Solvente comum em removedor de esmalte" },
+      { front: "Formaldeído (HCHO)", back: "Aldeído usado em conservação de tecidos" },
+      { front: "Éter etílico (CH₃CH₂OCH₂CH₃)", back: "Antigo anestésico, solvente volátil" },
+      { front: "Acetato de etila (CH₃COOCH₂CH₃)", back: "Éster com cheiro de fruta, usado como solvente" },
+      { front: "Metilamina (CH₃NH₂)", back: "Amina usada na síntese de produtos farmacêuticos" },
+      { front: "Metano (CH₄)", back: "Principal componente do gás natural" },
+      { front: "Óxido de cálcio (CaO)", back: "Cal virgem, usado na construção civil" },
+      { front: "Ácido sulfúrico (H₂SO₄)", back: "Ácido forte usado em baterias de carro" },
+      { front: "Hidróxido de sódio (NaOH)", back: "Soda cáustica, usado em produtos de limpeza" },
+      { front: "Cloreto de sódio (NaCl)", back: "Sal de cozinha, essencial para o organismo" },
+      { front: "Butano (C₄H₁₀)", back: "Gás de cozinha, combustível de isqueiros" },
+      { front: "Eteno (C₂H₄)", back: "Gás que amadurece frutas, matéria-prima para plásticos" },
+      { front: "Etino (C₂H₂)", back: "Acetileno, usado em maçaricos para solda" },
+      { front: "Fluor (F₂)", back: "Halogênio usado em pastas de dente para prevenir cáries" },
+      { front: "Benzeno (C₆H₆)", back: "Hidrocarboneto aromático, solvente industrial" },
+      { front: "Glicose (C₆H₁₂O₆)", back: "Açúcar simples, principal fonte de energia celular" },
+      { front: "Amônia (NH₃)", back: "Gás usado em fertilizantes e produtos de limpeza" },
+      { front: "Dióxido de carbono (CO₂)", back: "Gás essencial para fotossíntese, produto da respiração" }
+    ];
+
+    // Variáveis do jogo
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let attempts = 0;
+    let gameStarted = false;
+    let timerInterval;
+    let seconds = 0;
+    let currentDifficulty = 'easy';
+    let totalPairs = 4;
+    let playerName = localStorage.getItem("playerName") || "Jogador";
+    let hintUsed = false;
+
+    // Elementos do DOM
+    const memoryBoard = document.getElementById('memory-board');
+    const attemptsDisplay = document.getElementById('attempts');
+    const matchesDisplay = document.getElementById('matches');
+    const timerDisplay = document.getElementById('timer');
+    const setupScreen = document.getElementById('setup-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const finalMatches = document.getElementById('final-matches');
+    const finalAttempts = document.getElementById('final-attempts');
+    const finalTime = document.getElementById('final-time');
+    const finalDifficulty = document.getElementById('final-difficulty');
+    const hintBtn = document.getElementById('hint-btn');
+
+    // Configurar dificuldade
+    function setDifficulty(difficulty) {
+      currentDifficulty = difficulty;
+      document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      switch(difficulty) {
+        case 'extreme-easy':
+          totalPairs = 2;
+          break;
+        case 'easy':
+          totalPairs = 4;
+          break;
+        case 'medium':
+          totalPairs = 6;
+          break;
+        case 'hard':
+          totalPairs = 8;
+          break;
+        case 'extreme':
+          totalPairs = 10;
+          break;
+      }
+    }
+
+    // Iniciar jogo
+    function startGame() {
+      // Embaralhar pares e selecionar os necessários
+      const shuffledPairs = [...chemistryPairs].sort(() => 0.5 - Math.random()).slice(0, totalPairs);
+      cards = [...shuffledPairs, ...shuffledPairs].sort(() => 0.5 - Math.random());
+      
+      // Criar tabuleiro
+      memoryBoard.innerHTML = '';
+      cards.forEach((card, index) => {
+        const cardElement = document.createElement('div');
+        cardElement.classList.add('memory-card');
+        cardElement.dataset.index = index;
+        
+        const cardFront = document.createElement('div');
+        cardFront.classList.add('card-face', 'card-front');
+        
+        // Adicionar badge de química
+        const cardBadge = document.createElement('div');
+        cardBadge.classList.add('card-badge');
+        cardBadge.textContent = "Química";
+        
+        const cardTitle = document.createElement('div');
+        cardTitle.classList.add('card-title');
+        cardTitle.textContent = card.front.split(' (')[0];
+        
+        const cardFormula = document.createElement('div');
+        cardFormula.classList.add('card-content');
+        cardFormula.textContent = card.front.match(/\((.*?)\)/)[1];
+        
+        const cardContent = document.createElement('div');
+        cardContent.classList.add('card-content');
+        cardContent.textContent = card.back;
+        
+        cardFront.appendChild(cardBadge);
+        cardFront.appendChild(cardTitle);
+        cardFront.appendChild(cardFormula);
+        cardFront.appendChild(cardContent);
+        
+        const cardBack = document.createElement('div');
+        cardBack.classList.add('card-face', 'card-back');
+        
+        cardElement.appendChild(cardFront);
+        cardElement.appendChild(cardBack);
+        cardElement.addEventListener('click', flipCard);
+        memoryBoard.appendChild(cardElement);
+      });
+      
+      // Configurar layout do tabuleiro baseado na dificuldade
+      let columns;
+      switch(currentDifficulty) {
+        case 'extreme-easy':
+          columns = 2;
+          break;
+        case 'easy':
+          columns = Math.min(4, cards.length/2);
+          break;
+        case 'medium':
+          columns = Math.min(5, cards.length/2);
+          break;
+        case 'hard':
+          columns = Math.min(6, cards.length/2);
+          break;
+        case 'extreme':
+          columns = Math.min(7, cards.length/2);
+          break;
+      }
+      
+      // Ajustar para telas pequenas
+      if (window.innerWidth < 768) {
+        columns = Math.min(4, columns);
+      }
+      
+      memoryBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+      memoryBoard.style.maxWidth = `${columns * 135}px`;
+      
+      // Mostrar/ocultar botão de dica conforme dificuldade
+      hintBtn.style.display = ['hard', 'extreme'].includes(currentDifficulty) ? 'block' : 'none';
+      hintBtn.disabled = false;
+      hintBtn.textContent = "Dica";
+      hintUsed = false;
+      
+      // Resetar estatísticas
+      flippedCards = [];
+      matchedPairs = 0;
+      attempts = 0;
+      seconds = 0;
+      attemptsDisplay.textContent = attempts;
+      matchesDisplay.textContent = matchedPairs;
+      updateTimer();
+      
+      // Mostrar tela de jogo
+      setupScreen.style.display = 'none';
+      gameScreen.style.display = 'block';
+      resultScreen.style.display = 'none';
+      
+      // Iniciar timer
+      clearInterval(timerInterval);
+      gameStarted = true;
+      timerInterval = setInterval(() => {
+        seconds++;
+        updateTimer();
+      }, 1000);
+    }
+
+    // Virar carta
+    function flipCard() {
+      if (!gameStarted) return;
+      
+      const cardIndex = parseInt(this.dataset.index);
+      const card = this;
+      
+      // Não fazer nada se a carta já estiver virada ou combinada
+      if (flippedCards.length === 2 || card.classList.contains('flipped') || card.classList.contains('matched')) {
+        return;
+      }
+      
+      // Virar a carta
+      card.classList.add('flipped');
+      flippedCards.push({ index: cardIndex, element: card });
+      
+      // Verificar se duas cartas estão viradas
+      if (flippedCards.length === 2) {
+        attempts++;
+        attemptsDisplay.textContent = attempts;
+        
+        const card1 = cards[flippedCards[0].index];
+        const card2 = cards[flippedCards[1].index];
+        
+        // Verificar correspondência após um pequeno delay para permitir a animação
+        setTimeout(() => {
+          if (card1.front === card2.front) {
+            // Par encontrado
+            matchedPairs++;
+            matchesDisplay.textContent = matchedPairs;
+            
+            flippedCards.forEach(fc => {
+              fc.element.classList.add('matched', 'celebrate');
+              setTimeout(() => {
+                fc.element.classList.remove('celebrate');
+              }, 500);
+            });
+            
+            createConfetti(true);
+            flippedCards = [];
+            
+            // Verificar fim do jogo
+            if (matchedPairs === totalPairs) {
+              endGame();
+            }
+          } else {
+            // Par não encontrado - virar de volta após um tempo
+            setTimeout(() => {
+              flippedCards.forEach(fc => {
+                fc.element.classList.remove('flipped');
+              });
+              flippedCards = [];
+            }, 1000);
+          }
+        }, 500);
+      }
+    }
+
+    // Dar dica ao jogador (mostrar um par por 2 segundos)
+    function giveHint() {
+      if (hintUsed || flippedCards.length > 0) return;
+      
+      hintUsed = true;
+      hintBtn.disabled = true;
+      hintBtn.textContent = "Dica Usada";
+      
+      // Encontrar cartas não combinadas e não viradas
+      const unflippedCards = Array.from(document.querySelectorAll('.memory-card'))
+        .filter(card => !card.classList.contains('flipped') && !card.classList.contains('matched'))
+        .map(card => ({
+          element: card,
+          index: parseInt(card.dataset.index)
+        }));
+      
+      // Agrupar por pares
+      const pairs = {};
+      unflippedCards.forEach(card => {
+        const frontText = cards[card.index].front;
+        if (!pairs[frontText]) {
+          pairs[frontText] = [];
+        }
+        pairs[frontText].push(card);
+      });
+      
+      // Encontrar um par completo
+      let hintPair = null;
+      for (const frontText in pairs) {
+        if (pairs[frontText].length >= 2) {
+          hintPair = pairs[frontText].slice(0, 2);
+          break;
+        }
+      }
+      
+      if (hintPair) {
+        // Mostrar o par por 2 segundos
+        hintPair.forEach(card => {
+          card.element.classList.add('flipped', 'hint-active');
+        });
+        
+        setTimeout(() => {
+          hintPair.forEach(card => {
+            card.element.classList.remove('flipped', 'hint-active');
+          });
+        }, 2000);
+      }
+    }
+
+    // Atualizar timer
+    function updateTimer() {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    // Finalizar jogo
+    function endGame() {
+      clearInterval(timerInterval);
+      gameStarted = false;
+      
+      // Mostrar resultados
+      finalMatches.textContent = `${matchedPairs} de ${totalPairs}`;
+      finalAttempts.textContent = attempts;
+      finalTime.textContent = timerDisplay.textContent;
+      
+      switch(currentDifficulty) {
+        case 'extreme-easy':
+          finalDifficulty.textContent = 'Ext. Fácil';
+          break;
+        case 'easy':
+          finalDifficulty.textContent = 'Fácil';
+          break;
+        case 'medium':
+          finalDifficulty.textContent = 'Mediano';
+          break;
+        case 'hard':
+          finalDifficulty.textContent = 'Difícil';
+          break;
+        case 'extreme':
+          finalDifficulty.textContent = 'Ext. Difícil';
+          break;
+      }
+      
+      gameScreen.style.display = 'none';
+      resultScreen.style.display = 'block';
+      
+      createConfetti(true);
+    }
+
+    // Reiniciar jogo com mesma configuração
+    function restartGame() {
+      // Gerar um novo conjunto de cartas aleatórias
+      const shuffledPairs = [...chemistryPairs].sort(() => 0.5 - Math.random()).slice(0, totalPairs);
+      cards = [...shuffledPairs, ...shuffledPairs].sort(() => 0.5 - Math.random());
+      
+      // Reconstruir o tabuleiro com as novas cartas
+      memoryBoard.innerHTML = '';
+      cards.forEach((card, index) => {
+        const cardElement = document.createElement('div');
+        cardElement.classList.add('memory-card');
+        cardElement.dataset.index = index;
+        
+        const cardFront = document.createElement('div');
+        cardFront.classList.add('card-face', 'card-front');
+        
+        const cardBadge = document.createElement('div');
+        cardBadge.classList.add('card-badge');
+        cardBadge.textContent = "Química";
+        
+        const cardTitle = document.createElement('div');
+        cardTitle.classList.add('card-title');
+        cardTitle.textContent = card.front.split(' (')[0];
+        
+        const cardFormula = document.createElement('div');
+        cardFormula.classList.add('card-content');
+        cardFormula.textContent = card.front.match(/\((.*?)\)/)[1];
+        
+        const cardContent = document.createElement('div');
+        cardContent.classList.add('card-content');
+        cardContent.textContent = card.back;
+        
+        cardFront.appendChild(cardBadge);
+        cardFront.appendChild(cardTitle);
+        cardFront.appendChild(cardFormula);
+        cardFront.appendChild(cardContent);
+        
+        const cardBack = document.createElement('div');
+        cardBack.classList.add('card-face', 'card-back');
+        
+        cardElement.appendChild(cardFront);
+        cardElement.appendChild(cardBack);
+        cardElement.addEventListener('click', flipCard);
+        memoryBoard.appendChild(cardElement);
+      });
+      
+      // Resetar estatísticas
+      flippedCards = [];
+      matchedPairs = 0;
+      attempts = 0;
+      seconds = 0;
+      attemptsDisplay.textContent = attempts;
+      matchesDisplay.textContent = matchedPairs;
+      updateTimer();
+      
+      // Resetar dica
+      hintBtn.disabled = false;
+      hintBtn.textContent = "Dica";
+      hintUsed = false;
+      
+      // Mostrar tela de jogo
+      setupScreen.style.display = 'none';
+      gameScreen.style.display = 'block';
+      resultScreen.style.display = 'none';
+      
+      // Iniciar timer
+      clearInterval(timerInterval);
+      gameStarted = true;
+      timerInterval = setInterval(() => {
+        seconds++;
+        updateTimer();
+      }, 1000);
+    }
+
+    // Novo jogo (volta para tela de configuração)
+    function newGame() {
+      setupScreen.style.display = 'block';
+      gameScreen.style.display = 'none';
+      resultScreen.style.display = 'none';
+      clearInterval(timerInterval);
+    }
+
+    // Criar efeito de confete
+    function createConfetti(success) {
+      const colors = success ? 
+        ["#1abc9c", "#3498db", "#2980b9", "#2ecc71", "#27ae60"] : 
+        ["#e74c3c", "#c0392b", "#d35400", "#e67e22"];
+      
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+        confetti.style.left = Math.random() * 100 + "vw";
+        confetti.style.top = "-10px";
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        confetti.style.width = Math.random() * 10 + 5 + "px";
+        confetti.style.height = Math.random() * 10 + 5 + "px";
+        confetti.style.opacity = "1";
+        
+        document.body.appendChild(confetti);
+        
+        const animationDuration = Math.random() * 3 + 2;
+        
+        confetti.animate([
+          { top: "-10px", opacity: 1 },
+          { top: "100vh", opacity: 0 }
+        ], {
+          duration: animationDuration * 1000,
+          easing: "cubic-bezier(0.1, 0.8, 0.9, 1)",
+        });
+        
+        setTimeout(() => {
+          confetti.remove();
+        }, animationDuration * 1000);
+      }
+    }
+
+    // Voltar para a tela inicial
+    function goToHome() {
+      window.location.href = "index.html";
+    }
+
+    // Configurar dificuldade padrão
+    document.addEventListener('DOMContentLoaded', function() {
+      // Ativar o botão fácil por padrão
+      document.querySelector('.difficulty-easy').classList.add('active');
+    });
+
+    // Ajustar layout quando a janela é redimensionada
+    window.addEventListener('resize', function() {
+      if (gameStarted) {
+        // Recalcula o layout quando a janela é redimensionada
+        const currentCards = document.querySelectorAll('.memory-card');
+        if (currentCards.length > 0) {
+          // Reaplica a lógica de colunas
+          let columns;
+          switch(currentDifficulty) {
+            case 'extreme-easy':
+              columns = 2;
+              break;
+            case 'easy':
+              columns = Math.min(4, cards.length/2);
+              break;
+            case 'medium':
+              columns = Math.min(5, cards.length/2);
+              break;
+            case 'hard':
+              columns = Math.min(6, cards.length/2);
+              break;
+            case 'extreme':
+              columns = Math.min(7, cards.length/2);
+              break;
+          }
+          
+          if (window.innerWidth < 768) {
+            columns = Math.min(4, columns);
+          }
+          
+          memoryBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+          memoryBoard.style.maxWidth = `${columns * 135}px`;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

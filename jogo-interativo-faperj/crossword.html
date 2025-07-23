@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Palavras Cruzadas - Química Avançada</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary: #2980b9;
+        --secondary: #3498db;
+        --accent: #1abc9c;
+        --dark: #2c3e50;
+        --light: #ecf0f1;
+        --correct: #2ecc71;
+        --incorrect: #e74c3c;
+        --warning: #f39c12;
+        --focused: #f39c12;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        overflow-x: hidden;
+        height: 100vh;
+        background: linear-gradient(135deg, var(--dark), var(--primary));
+        color: var(--light);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    #particles-js {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+    .crossword-container {
+        position: relative;
+        z-index: 2;
+        width: 95%;
+        max-width: 900px;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px 40px;
+        box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        animation: fadeIn 1.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .game-area {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .grid-wrapper {
+        overflow-x: auto;
+        padding-bottom: 10px; 
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 35px);
+      gap: 2px;
+    }
+
+    .cell {
+      position: relative;
+      width: 35px;
+      height: 35px;
+      background-color: rgba(255,255,255, 0.1);
+      border: 1px solid rgba(255,255,255, 0.2);
+      border-radius: 4px;
+    }
+
+    .cell.focused {
+        background-color: rgba(243, 156, 18, 0.3);
+        border-color: var(--focused);
+    }
+    
+    .cell.blank {
+        background-color: transparent;
+        border: none;
+    }
+
+    .cell[data-number]::before {
+      content: attr(data-number);
+      position: absolute;
+      top: 1px;
+      left: 2px;
+      font-size: 9px;
+      font-weight: bold;
+      color: var(--light);
+    }
+
+    .cell input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background-color: transparent;
+      color: var(--light);
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      text-transform: uppercase;
+      outline: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    .cell.correct input { background-color: rgba(46, 204, 113, 0.5); }
+    .cell.wrong input { background-color: rgba(231, 76, 60, 0.5); }
+
+    .dicas-container {
+      text-align: left;
+      max-width: 350px;
+      width: 100%;
+    }
+    
+    #current-hint-box {
+        background: rgba(0,0,0,0.3);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border-left: 4px solid var(--accent);
+        min-height: 80px;
+    }
+
+    #current-hint-box h4 { color: var(--accent); }
+    #current-hint-text { font-size: 0.9em; }
+
+    .dicas-list { max-height: 250px; overflow-y: auto; padding-right: 10px; }
+    .dicas-list h3 { margin-bottom: 10px; }
+    .dicas-list ul { list-style: none; padding: 0; }
+    .dicas-list li { margin-bottom: 5px; font-size: 0.85em; cursor: pointer; padding: 2px; border-radius: 4px;}
+    .dicas-list li:hover { background-color: rgba(255,255,255,0.1); }
+    .dicas-list li.focused-hint { background-color: rgba(243, 156, 18, 0.3); }
+    .dicas-list .verify-icon {
+        color: var(--correct);
+        font-size: 1.1em;
+    }
+
+    .actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 50px;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+    }
+    .button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(41, 128, 185, 0.4);
+    }
+    
+    #hint-button {
+        background: linear-gradient(45deg, var(--warning), #f1c40f);
+    }
+
+    .home-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 50px;
+        height: 50px;
+        padding: 0;
+        font-size: 1.5rem;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .home-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+
+    #final-message {
+        margin-top: 15px;
+        font-size: 1.2em;
+        font-weight: bold;
+        color: var(--correct);
+    }
+    
+    /* --- Media Query para Responsividade --- */
+    @media (max-width: 800px) {
+        body { 
+            height: auto; 
+            min-height: 100vh; 
+            padding: 20px 0; 
+        }
+        .game-area { 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        .grid-wrapper {
+            width: 100%;
+        }
+        .grid { 
+            grid-template-columns: repeat(12, 28px); 
+        }
+        .cell { 
+            width: 28px; 
+            height: 28px; 
+        }
+        .crossword-container { 
+            padding: 20px; 
+        }
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+  <div class="crossword-container">
+    <button class="home-btn" onclick="goToHome()" title="Voltar para o Início">🏠</button>
+    <h2>🧠 Palavras Cruzadas de Química</h2>
+    <p id="player-name" style="margin-bottom: 10px;"></p>
+    
+    <div class="game-area">
+      <div class="grid-wrapper">
+          <div class="grid" id="crossword-grid"></div>
+      </div>
+      <div class="dicas-container">
+          <div id="current-hint-box">
+              <h4>Dica Atual:</h4>
+              <p id="current-hint-text">Clique em uma letra para ver a dica.</p>
+          </div>
+          <div class="dicas-list" id="dicas"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+        <button class="button" onclick="verificar()">✅ Verificar Respostas</button>
+        <button class="button" id="hint-button" onclick="pedirDica()">💡 Pedir Dica</button>
+        <button class="button" onclick="iniciarJogo()">🔄 Reiniciar</button>
+    </div>
+    <p id="final-message" style="display: none;"></p>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    particlesJS("particles-js", {
+        "particles": { "number": { "value": 40, "density": { "enable": true, "value_area": 800 } }, "color": { "value": "#1abc9c" }, "shape": { "type": "circle" }, "opacity": { "value": 0.5, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1, "sync": false } }, "size": { "value": 8, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 3, "sync": false } }, "line_linked": { "enable": true, "distance": 200, "color": "#3498db", "opacity": 0.4, "width": 2 }, "move": { "enable": true, "speed": 1.5, "direction": "none", "random": true, "straight": false, "out_mode": "bounce", "attract": { "enable": true, "rotateX": 600, "rotateY": 1200 } } }, "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true }, "modes": { "grab": { "distance": 200, "line_linked": { "opacity": 1 } }, "push": { "particles_nb": 4 } } }, "retina_detect": true
+    });
+
+    const name = localStorage.getItem("playerName");
+    if (name) {
+      document.getElementById("player-name").innerText = `👤 Jogador: ${name}`;
+    }
+
+    function goToHome() {
+      window.location.href = "index.html"; 
+    }
+    
+    const palavrasBase = [
+      { palavra: "OXIDACAO", dica: "Processo químico que envolve a perda de elétrons." },
+      { palavra: "REDUCAO", dica: "Processo químico que envolve o ganho de elétrons." },
+      { palavra: "ACIDO", dica: "Substância que, em solução aquosa, libera íons H⁺." },
+      { palavra: "BASE", dica: "Substância que, em solução aquosa, libera íons OH⁻." },
+      { palavra: "FERRO", dica: "Metal de transição que compõe a hemoglobina e enferruja." },
+      { palavra: "CARBONO", dica: "Elemento base da química orgânica, tetravalente." },
+      { palavra: "ELETRON", dica: "Partícula subatômica com carga negativa." },
+      { palavra: "CATALISE", dica: "Aumento da velocidade de uma reação por um catalisador." },
+      { palavra: "SOLUCAO", dica: "Mistura homogênea de duas ou mais substâncias." },
+      { palavra: "ALCANO", dica: "Hidrocarboneto que contém apenas ligações simples." },
+      { palavra: "ANODO", dica: "Eletrodo onde ocorre a oxidação em uma pilha." },
+      { palavra: "MOLECULA", dica: "Menor parte de uma substância que mantém suas propriedades." },
+      { palavra: "POLIMERO", dica: "Macromolécula formada pela união de monômeros." },
+      { palavra: "PROTON", dica: "Partícula subatômica com carga positiva no núcleo." }
+    ];
+
+    const gridTamanho = 12;
+    let palavrasPosicionadas = [];
+    let inputs = {};
+    let focusedCell = null;
+
+    function gerarLayout(palavrasParaGerar) {
+        let tentativas = 0;
+        while (tentativas < 10) {
+            const posicoes = [];
+            const grid = Array.from({ length: gridTamanho }, () => Array(gridTamanho).fill(null));
+            let palavrasColocadasCount = 0;
+
+            for (const { palavra, dica } of palavrasParaGerar) {
+                let colocado = false;
+                let tentativasPalavra = 0;
+                while (!colocado && tentativasPalavra < 100) {
+                    tentativasPalavra++;
+                    const horizontal = Math.random() < 0.5;
+                    
+                    let podeColocar = false;
+                    let intersecEncontrada = false;
+                    for (let i = 0; i < palavra.length && !intersecEncontrada; i++) {
+                        for(let p_idx = 0; p_idx < posicoes.length; p_idx++) {
+                            const p_existente = posicoes[p_idx];
+                            const idx_cruzamento = p_existente.palavra.indexOf(palavra[i]);
+                            if (idx_cruzamento !== -1 && p_existente.horizontal !== horizontal) {
+                                const linha = p_existente.horizontal ? p_existente.linha - i : p_existente.linha + idx_cruzamento;
+                                const coluna = p_existente.horizontal ? p_existente.coluna + idx_cruzamento : p_existente.coluna - i;
+                                if(verificarPosicao(palavra, linha, coluna, horizontal, grid)) {
+                                    colocarPalavra(palavra, dica, linha, coluna, horizontal, grid, posicoes);
+                                    colocado = podeColocar = true;
+                                    intersecEncontrada = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (colocado) continue;
+
+                    const linha = Math.floor(Math.random() * (horizontal ? gridTamanho : gridTamanho - palavra.length + 1));
+                    const coluna = Math.floor(Math.random() * (horizontal ? gridTamanho - palavra.length + 1 : gridTamanho));
+
+                    if (verificarPosicao(palavra, linha, coluna, horizontal, grid)) {
+                        colocarPalavra(palavra, dica, linha, coluna, horizontal, grid, posicoes);
+                        colocado = true;
+                    }
+                }
+                if (colocado) palavrasColocadasCount++;
+            }
+            if (palavrasColocadasCount > palavrasParaGerar.length * 0.7) { 
+                return posicoes;
+            }
+            tentativas++;
+        }
+        return [];
+    }
+
+    function verificarPosicao(palavra, linha, coluna, horizontal, grid) {
+        if (linha < 0 || coluna < 0) return false;
+        for (let i = 0; i < palavra.length; i++) {
+            const r = horizontal ? linha : linha + i;
+            const c = horizontal ? coluna + i : coluna;
+            if (r >= gridTamanho || c >= gridTamanho) return false;
+            const letraExistente = grid[r][c];
+            if (letraExistente && letraExistente !== palavra[i]) return false;
+        }
+        return true;
+    }
+
+    function colocarPalavra(palavra, dica, linha, coluna, horizontal, grid, posicoes) {
+        for (let i = 0; i < palavra.length; i++) {
+            const r = horizontal ? linha : linha + i;
+            const c = horizontal ? coluna + i : coluna;
+            grid[r][c] = palavra[i];
+        }
+        posicoes.push({ palavra, dica, linha, coluna, horizontal, numero: posicoes.length + 1 });
+    }
+
+    function desenharGrid() {
+        const container = document.getElementById("crossword-grid");
+        container.innerHTML = '';
+        inputs = {};
+        const gridElements = Array.from({ length: gridTamanho }, () => Array(gridTamanho).fill(null));
+        const usedCells = new Set();
+        
+        palavrasPosicionadas.forEach(({ palavra, linha, coluna, horizontal, numero }) => {
+            for (let i = 0; i < palavra.length; i++) {
+                const r = horizontal ? linha : linha + i;
+                const c = horizontal ? coluna + i : coluna;
+                const cellKey = `${r}-${c}`;
+                
+                if (!usedCells.has(cellKey)) {
+                    const div = document.createElement("div");
+                    div.className = "cell";
+                    div.dataset.r = r;
+                    div.dataset.c = c;
+
+                    const input = document.createElement("input");
+                    input.maxLength = 1;
+                    input.dataset.r = r;
+                    input.dataset.c = c;
+                    
+                    div.appendChild(input);
+                    gridElements[r][c] = div;
+                    inputs[cellKey] = input;
+                    usedCells.add(cellKey);
+                }
+                if (i === 0) gridElements[r][c].setAttribute("data-number", numero);
+            }
+        });
+
+        for(let r=0; r<gridTamanho; r++) {
+            for(let c=0; c<gridTamanho; c++) {
+                const cell = gridElements[r][c];
+                if(cell) {
+                    container.appendChild(cell);
+                } else {
+                    const blankDiv = document.createElement("div");
+                    blankDiv.className = "cell blank";
+                    container.appendChild(blankDiv);
+                }
+            }
+        }
+    }
+
+    function adicionarEventListeners() {
+        Object.values(inputs).forEach(input => {
+            input.addEventListener("input", (e) => handleInput(e.target));
+            input.addEventListener("focus", (e) => handleFocus(e.target));
+            input.addEventListener("keydown", (e) => handleKeydown(e));
+        });
+    }
+
+    function handleInput(input) {
+        input.value = input.value.toUpperCase();
+        input.parentElement.classList.remove("correct", "wrong");
+        
+        const { r, c } = input.dataset;
+        const currentWord = getWordsAt(r,c)[0];
+
+        if(input.value && currentWord) {
+             const nextR = currentWord.horizontal ? r : parseInt(r) + 1;
+             const nextC = currentWord.horizontal ? parseInt(c) + 1 : c;
+             const nextInput = inputs[`${nextR}-${nextC}`];
+             if(nextInput) nextInput.focus();
+        }
+    }
+    
+    function handleKeydown(e) {
+        const { r, c } = e.target.dataset;
+        let nextInput;
+        switch(e.key) {
+            case "ArrowUp":
+                nextInput = inputs[`${parseInt(r) - 1}-${c}`];
+                break;
+            case "ArrowDown":
+                nextInput = inputs[`${parseInt(r) + 1}-${c}`];
+                break;
+            case "ArrowLeft":
+                nextInput = inputs[`${r}-${parseInt(c) - 1}`];
+                break;
+            case "ArrowRight":
+                nextInput = inputs[`${r}-${parseInt(c) + 1}`];
+                break;
+            case "Backspace":
+                if (!e.target.value) {
+                    const currentWord = getWordsAt(r,c)[0];
+                    if(currentWord){
+                        const prevR = currentWord.horizontal ? r : parseInt(r) - 1;
+                        const prevC = currentWord.horizontal ? parseInt(c) - 1 : c;
+                        nextInput = inputs[`${prevR}-${prevC}`];
+                    }
+                }
+                break;
+        }
+        if(nextInput) {
+            e.preventDefault();
+            nextInput.focus();
+        }
+    }
+
+    function handleFocus(input) {
+        focusedCell = input;
+        const r = input.dataset.r;
+        const c = input.dataset.c;
+        
+        document.querySelectorAll('.cell.focused').forEach(cell => cell.classList.remove('focused'));
+        document.querySelectorAll('.focused-hint').forEach(el => el.classList.remove('focused-hint'));
+
+        const words = getWordsAt(r,c);
+        if (words.length > 0) {
+            words.forEach(word => {
+                for (let i = 0; i < word.palavra.length; i++) {
+                    const r_word = word.horizontal ? word.linha : word.linha + i;
+                    const c_word = word.horizontal ? word.coluna + i : word.coluna;
+                    const cellEl = document.querySelector(`.cell[data-r='${r_word}'][data-c='${c_word}']`);
+                    if(cellEl) cellEl.classList.add("focused");
+                }
+                const hintEl = document.getElementById(`hint-${word.numero}`);
+                if(hintEl) hintEl.classList.add('focused-hint');
+            });
+
+            document.getElementById('current-hint-text').innerHTML = words.map(w => `<strong>${w.numero} ${w.horizontal ? 'Horiz.' : 'Vert.'}:</strong> ${w.dica}`).join('<br>');
+        }
+    }
+    
+    function getWordsAt(r, c) {
+        return palavrasPosicionadas.filter(p => {
+            if (p.horizontal) {
+                return p.linha == r && c >= p.coluna && c < p.coluna + p.palavra.length;
+            } else {
+                return p.coluna == c && r >= p.linha && r < p.linha + p.palavra.length;
+            }
+        });
+    }
+
+    function desenharDicas() {
+        const dicasDiv = document.getElementById("dicas");
+        dicasDiv.innerHTML = "<h3>Todas as Dicas:</h3><ul>" + palavrasPosicionadas
+            .sort((a,b) => a.numero - b.numero)
+            .map(p => `<li id="hint-${p.numero}" onclick="focusOnWord(${p.numero})"><strong>${p.numero}</strong> - ${p.dica}</li>`)
+            .join('') + "</ul>";
+    }
+    
+    function focusOnWord(numero) {
+        const word = palavrasPosicionadas.find(p => p.numero === numero);
+        if (word) {
+            const firstInput = inputs[`${word.linha}-${word.coluna}`];
+            if (firstInput) firstInput.focus();
+        }
+    }
+
+    function verificar() {
+        let palavrasCorretas = 0;
+        palavrasPosicionadas.forEach(({ palavra, linha, coluna, horizontal, numero }) => {
+            let palavraDoUsuario = '';
+            let isCorrect = true;
+
+            for (let i = 0; i < palavra.length; i++) {
+                const r = horizontal ? linha : linha + i;
+                const c = horizontal ? coluna + i : coluna;
+                const input = inputs[`${r}-${c}`];
+                const letraUsuario = input ? input.value.toUpperCase() : '';
+                palavraDoUsuario += letraUsuario;
+                
+                if (letraUsuario !== palavra[i]) {
+                    isCorrect = false;
+                }
+            }
+            
+            if (palavraDoUsuario.length !== palavra.length) {
+                isCorrect = false;
+            }
+
+            const hintEl = document.getElementById(`hint-${numero}`);
+            const existingIcon = hintEl ? hintEl.querySelector('.verify-icon') : null;
+            if(existingIcon) existingIcon.remove();
+
+            for (let i = 0; i < palavra.length; i++) {
+                 const r = horizontal ? linha : linha + i;
+                 const c = horizontal ? coluna + i : coluna;
+                 const input = inputs[`${r}-${c}`];
+                 if(input) {
+                    const container = input.parentElement;
+                    container.classList.remove("correct", "wrong");
+                    if (isCorrect) {
+                        container.classList.add("correct");
+                     } else if (input.value) {
+                        container.classList.add("wrong");
+                     }
+                 }
+            }
+
+            if(isCorrect) {
+                palavrasCorretas++;
+                if (hintEl) {
+                    const icon = document.createElement('span');
+                    icon.className = 'verify-icon';
+                    icon.textContent = ' ✅';
+                    hintEl.appendChild(icon);
+                }
+            }
+        });
+        
+        const finalMessageEl = document.getElementById('final-message');
+        if (palavrasCorretas === palavrasPosicionadas.length) {
+            finalMessageEl.textContent = `🎉 Parabéns, ${name || 'jogador'}! Você completou o desafio!`;
+            finalMessageEl.style.display = 'block';
+            finalMessageEl.style.color = 'var(--correct)';
+        } else {
+            finalMessageEl.textContent = `Você acertou ${palavrasCorretas} de ${palavrasPosicionadas.length} palavras. Continue tentando!`;
+            finalMessageEl.style.display = 'block';
+            finalMessageEl.style.color = 'var(--warning)';
+        }
+    }
+    
+    function pedirDica() {
+        if (!focusedCell) {
+            alert("Clique em uma letra para selecionar uma palavra antes de pedir uma dica.");
+            return;
+        }
+        
+        const r = focusedCell.dataset.r;
+        const c = focusedCell.dataset.c;
+        const word = getWordsAt(r,c)[0]; 
+        
+        if (!word) return;
+
+        let palavraAtual = "";
+        let isCompleteAndCorrect = true;
+        for (let i = 0; i < word.palavra.length; i++) {
+            const r_word = word.horizontal ? word.linha : word.linha + i;
+            const c_word = word.horizontal ? word.coluna + i : word.coluna;
+            const input = inputs[`${r_word}-${c_word}`];
+            const letra = input ? input.value.toUpperCase() : "";
+            palavraAtual += letra;
+            if (letra !== word.palavra[i]) {
+                isCompleteAndCorrect = false;
+            }
+        }
+
+        if (isCompleteAndCorrect) {
+             alert("Esta palavra já está correta!");
+             return;
+        }
+
+        for (let i = 0; i < word.palavra.length; i++) {
+            const r_word = word.horizontal ? word.linha : word.linha + i;
+            const c_word = word.horizontal ? word.coluna + i : word.coluna;
+            const input = inputs[`${r_word}-${c_word}`];
+            if (input && input.value !== '' && input.value.toUpperCase() !== word.palavra[i]) {
+                input.value = word.palavra[i];
+                input.parentElement.classList.add('correct');
+                input.parentElement.classList.remove('wrong');
+                handleInput(input);
+                return;
+            }
+        }
+
+        for (let i = 0; i < word.palavra.length; i++) {
+            const r_word = word.horizontal ? word.linha : word.linha + i;
+            const c_word = word.horizontal ? word.coluna + i : word.coluna;
+            const input = inputs[`${r_word}-${c_word}`];
+            if (input && input.value === '') {
+                input.value = word.palavra[i];
+                input.parentElement.classList.add('correct');
+                input.parentElement.classList.remove('wrong');
+                handleInput(input);
+                return;
+            }
+        }
+    }
+
+    function iniciarJogo() {
+        document.getElementById('final-message').style.display = 'none';
+        const palavrasParaGerar = [...palavrasBase].sort(() => 0.5 - Math.random()).slice(0, 8);
+        palavrasPosicionadas = gerarLayout(palavrasParaGerar);
+        
+        while(palavrasPosicionadas.length < 5) {
+           palavrasPosicionadas = gerarLayout(palavrasParaGerar);
+        }
+
+        desenharGrid();
+        desenharDicas();
+        adicionarEventListeners();
+        document.getElementById('current-hint-text').textContent = 'Clique em uma letra para ver a dica.';
+    }
+
+    window.onload = iniciarJogo;
+  </script>
+</body>
+</html>
